@@ -66,7 +66,7 @@ ICL-Runtime/
 │   │       ├── normalizer.rs
 │   │       ├── verifier.rs
 │   │       └── executor.rs
-│   └── icl-cli/            # Binary: `icl validate`, `icl verify`, etc.
+│   └── icl-cli/            # Binary: `icl-cli validate`, `icl-cli verify`, etc.
 │       └── src/main.rs
 ├── tests/
 │   ├── integration/
