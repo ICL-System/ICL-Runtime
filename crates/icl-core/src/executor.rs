@@ -149,10 +149,8 @@ impl Value {
                 serde_json::Value::Array(arr.iter().map(|v| v.to_json()).collect())
             }
             Value::Object(map) => {
-                let obj: serde_json::Map<String, serde_json::Value> = map
-                    .iter()
-                    .map(|(k, v)| (k.clone(), v.to_json()))
-                    .collect();
+                let obj: serde_json::Map<String, serde_json::Value> =
+                    map.iter().map(|(k, v)| (k.clone(), v.to_json())).collect();
                 serde_json::Value::Object(obj)
             }
         }
@@ -239,7 +237,10 @@ impl ExecutionState {
     }
 
     fn estimate_size(&self) -> usize {
-        self.fields.iter().map(|(k, v)| k.len() + Self::value_size(v)).sum()
+        self.fields
+            .iter()
+            .map(|(k, v)| k.len() + Self::value_size(v))
+            .sum()
     }
 
     fn value_size(value: &Value) -> usize {
@@ -251,7 +252,10 @@ impl ExecutionState {
             Value::String(s) => s.len() + 24, // heap overhead
             Value::Array(arr) => 24 + arr.iter().map(Self::value_size).sum::<usize>(),
             Value::Object(map) => {
-                24 + map.iter().map(|(k, v)| k.len() + Self::value_size(v)).sum::<usize>()
+                24 + map
+                    .iter()
+                    .map(|(k, v)| k.len() + Self::value_size(v))
+                    .sum::<usize>()
             }
         }
     }
@@ -414,7 +418,10 @@ impl Sandbox {
         };
 
         Sandbox {
-            max_memory_bytes: contract.execution_constraints.resource_limits.max_memory_bytes,
+            max_memory_bytes: contract
+                .execution_constraints
+                .resource_limits
+                .max_memory_bytes,
             computation_timeout_ms: contract
                 .execution_constraints
                 .resource_limits
@@ -609,7 +616,10 @@ impl Executor {
             .iter()
             .find(|o| o.name == operation_name)
             .ok_or_else(|| {
-                Error::ExecutionError(format!("Operation '{}' not found in contract", operation_name))
+                Error::ExecutionError(format!(
+                    "Operation '{}' not found in contract",
+                    operation_name
+                ))
             })?
             .clone();
 
@@ -665,26 +675,24 @@ impl Executor {
         }
 
         // 9. Check all invariants
-        let invariants_verified =
-            match ExpressionEvaluator::check_invariants(
-                &self.contract.data_semantics.invariants,
-                &self.state,
-            ) {
-                Ok(()) => true,
-                Err(violations) => {
-                    // Rollback state
-                    self.state.fields = state_before;
-                    return Err(Error::ContractViolation {
-                        commitment: "invariant".into(),
-                        violation: format!("Violated invariants: {}", violations.join(", ")),
-                    });
-                }
-            };
+        let invariants_verified = match ExpressionEvaluator::check_invariants(
+            &self.contract.data_semantics.invariants,
+            &self.state,
+        ) {
+            Ok(()) => true,
+            Err(violations) => {
+                // Rollback state
+                self.state.fields = state_before;
+                return Err(Error::ContractViolation {
+                    commitment: "invariant".into(),
+                    violation: format!("Violated invariants: {}", violations.join(", ")),
+                });
+            }
+        };
 
         // 10. Check resource limits
-        self.sandbox.check_memory(&self.state).map_err(|e| {
+        self.sandbox.check_memory(&self.state).inspect_err(|_| {
             self.state.fields = state_before.clone();
-            e
         })?;
 
         // 11. Compute changes
@@ -714,11 +722,7 @@ impl Executor {
     }
 
     /// Validate that inputs match operation parameter types
-    fn validate_inputs(
-        &self,
-        op: &crate::Operation,
-        inputs: &serde_json::Value,
-    ) -> Result<()> {
+    fn validate_inputs(&self, op: &crate::Operation, inputs: &serde_json::Value) -> Result<()> {
         if let serde_json::Value::Object(params_def) = &op.parameters {
             if let serde_json::Value::Object(input_map) = inputs {
                 // Check all required parameters are provided
@@ -805,9 +809,7 @@ impl Executor {
                 })?;
 
             let empty_obj = serde_json::Value::Object(serde_json::Map::new());
-            let inputs = req
-                .get("inputs")
-                .unwrap_or(&empty_obj);
+            let inputs = req.get("inputs").unwrap_or(&empty_obj);
 
             let inputs_str = serde_json::to_string(inputs)
                 .map_err(|e| Error::ExecutionError(format!("Failed to serialize inputs: {}", e)))?;
@@ -918,10 +920,7 @@ mod tests {
                     "message": "String",
                     "count": "Integer"
                 }),
-                invariants: vec![
-                    "message is not empty".into(),
-                    "count >= 0".into(),
-                ],
+                invariants: vec!["message is not empty".into(), "count >= 0".into()],
             },
             behavioral_semantics: BehavioralSemantics {
                 operations: vec![Operation {
@@ -956,11 +955,18 @@ mod tests {
     // ── Value Tests ───────────────────────────────────────
 
     #[test]
+    #[allow(clippy::approx_constant)]
     fn test_value_from_json_primitives() {
         assert_eq!(Value::from_json(&serde_json::json!(null)), Value::Null);
-        assert_eq!(Value::from_json(&serde_json::json!(true)), Value::Boolean(true));
+        assert_eq!(
+            Value::from_json(&serde_json::json!(true)),
+            Value::Boolean(true)
+        );
         assert_eq!(Value::from_json(&serde_json::json!(42)), Value::Integer(42));
-        assert_eq!(Value::from_json(&serde_json::json!(3.14)), Value::Float(3.14));
+        assert_eq!(
+            Value::from_json(&serde_json::json!(3.14)),
+            Value::Float(3.14)
+        );
         assert_eq!(
             Value::from_json(&serde_json::json!("hello")),
             Value::String("hello".into())
@@ -1058,7 +1064,9 @@ mod tests {
 
     #[test]
     fn test_eval_is_not_empty_true() {
-        let mut state = ExecutionState { fields: BTreeMap::new() };
+        let mut state = ExecutionState {
+            fields: BTreeMap::new(),
+        };
         state.set("message".into(), Value::String("hello".into()));
         let (result, evaluable) = ExpressionEvaluator::evaluate("message is not empty", &state);
         assert!(evaluable);
@@ -1067,7 +1075,9 @@ mod tests {
 
     #[test]
     fn test_eval_is_not_empty_false() {
-        let mut state = ExecutionState { fields: BTreeMap::new() };
+        let mut state = ExecutionState {
+            fields: BTreeMap::new(),
+        };
         state.set("message".into(), Value::String(String::new()));
         let (result, evaluable) = ExpressionEvaluator::evaluate("message is not empty", &state);
         assert!(evaluable);
@@ -1076,7 +1086,9 @@ mod tests {
 
     #[test]
     fn test_eval_numeric_comparisons() {
-        let mut state = ExecutionState { fields: BTreeMap::new() };
+        let mut state = ExecutionState {
+            fields: BTreeMap::new(),
+        };
         state.set("count".into(), Value::Integer(5));
 
         assert!(ExpressionEvaluator::evaluate("count >= 0", &state).0);
@@ -1091,7 +1103,9 @@ mod tests {
 
     #[test]
     fn test_eval_is_boolean() {
-        let mut state = ExecutionState { fields: BTreeMap::new() };
+        let mut state = ExecutionState {
+            fields: BTreeMap::new(),
+        };
         state.set("flag".into(), Value::Boolean(true));
         state.set("count".into(), Value::Integer(5));
 
@@ -1101,36 +1115,35 @@ mod tests {
 
     #[test]
     fn test_eval_opaque_condition() {
-        let state = ExecutionState { fields: BTreeMap::new() };
-        let (result, evaluable) =
-            ExpressionEvaluator::evaluate("some_opaque_condition", &state);
+        let state = ExecutionState {
+            fields: BTreeMap::new(),
+        };
+        let (result, evaluable) = ExpressionEvaluator::evaluate("some_opaque_condition", &state);
         assert!(!evaluable);
         assert!(result); // opaque = pass
     }
 
     #[test]
     fn test_check_invariants_all_pass() {
-        let mut state = ExecutionState { fields: BTreeMap::new() };
+        let mut state = ExecutionState {
+            fields: BTreeMap::new(),
+        };
         state.set("message".into(), Value::String("hello".into()));
         state.set("count".into(), Value::Integer(5));
 
-        let invariants = vec![
-            "message is not empty".into(),
-            "count >= 0".into(),
-        ];
+        let invariants = vec!["message is not empty".into(), "count >= 0".into()];
         assert!(ExpressionEvaluator::check_invariants(&invariants, &state).is_ok());
     }
 
     #[test]
     fn test_check_invariants_one_fails() {
-        let mut state = ExecutionState { fields: BTreeMap::new() };
+        let mut state = ExecutionState {
+            fields: BTreeMap::new(),
+        };
         state.set("message".into(), Value::String(String::new()));
         state.set("count".into(), Value::Integer(5));
 
-        let invariants = vec![
-            "message is not empty".into(),
-            "count >= 0".into(),
-        ];
+        let invariants = vec!["message is not empty".into(), "count >= 0".into()];
         let result = ExpressionEvaluator::check_invariants(&invariants, &state);
         assert!(result.is_err());
         let violations = result.unwrap_err();
@@ -1179,9 +1192,7 @@ mod tests {
             permissions: vec![],
         };
         assert!(sandbox.check_permissions(&[]).is_ok());
-        assert!(sandbox
-            .check_permissions(&["network".to_string()])
-            .is_err());
+        assert!(sandbox.check_permissions(&["network".to_string()]).is_err());
     }
 
     #[test]
@@ -1196,9 +1207,7 @@ mod tests {
         assert!(sandbox
             .check_permissions(&["database_query".to_string()])
             .is_ok());
-        assert!(sandbox
-            .check_permissions(&["network".to_string()])
-            .is_err());
+        assert!(sandbox.check_permissions(&["network".to_string()]).is_err());
     }
 
     // ── ProvenanceLog Tests ───────────────────────────────
@@ -1234,7 +1243,10 @@ mod tests {
     fn test_executor_new() {
         let contract = test_contract();
         let executor = Executor::new(contract);
-        assert_eq!(executor.state().get("message"), Some(&Value::String(String::new())));
+        assert_eq!(
+            executor.state().get("message"),
+            Some(&Value::String(String::new()))
+        );
         assert_eq!(executor.state().get("count"), Some(&Value::Integer(0)));
         assert!(executor.provenance().is_empty());
     }
@@ -1476,8 +1488,14 @@ mod tests {
     #[test]
     fn test_resource_limit_memory_exceeded() {
         let mut contract = test_contract();
-        contract.execution_constraints.resource_limits.max_state_size_bytes = 10;
-        contract.execution_constraints.resource_limits.max_memory_bytes = 10;
+        contract
+            .execution_constraints
+            .resource_limits
+            .max_state_size_bytes = 10;
+        contract
+            .execution_constraints
+            .resource_limits
+            .max_memory_bytes = 10;
         // Remove invariants so the only failure mode is memory
         contract.data_semantics.invariants.clear();
 
@@ -1523,4 +1541,3 @@ mod tests {
         assert!(err.contains("postcondition") || err.contains("Contract violation"));
     }
 }
-

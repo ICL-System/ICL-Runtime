@@ -239,7 +239,8 @@ impl std::fmt::Display for LiteralValue {
             LiteralValue::String(s, _) => write!(f, "\"{}\"", s),
             LiteralValue::Integer(n, _) => write!(f, "{}", n),
             LiteralValue::Float(n, _) => write!(f, "{}", n),
-            LiteralValue::Boolean(b, _) => write!(f, "{}", b),            LiteralValue::Array(items, _) => {
+            LiteralValue::Boolean(b, _) => write!(f, "{}", b),
+            LiteralValue::Array(items, _) => {
                 write!(f, "[")?;
                 for (i, item) in items.iter().enumerate() {
                     if i > 0 {
@@ -248,13 +249,18 @@ impl std::fmt::Display for LiteralValue {
                     write!(f, "{}", item)?;
                 }
                 write!(f, "]")
-            }        }
+            }
+        }
     }
 }
 
 impl std::fmt::Display for ContractNode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Contract(id={}, v={})", self.identity.stable_id.value, self.identity.version.value)
+        write!(
+            f,
+            "Contract(id={}, v={})",
+            self.identity.stable_id.value, self.identity.version.value
+        )
     }
 }
 
@@ -300,20 +306,33 @@ mod tests {
 
     #[test]
     fn test_type_expression_display() {
-        let span = Span { line: 1, column: 1, offset: 0 };
+        let span = Span {
+            line: 1,
+            column: 1,
+            offset: 0,
+        };
 
         let int_ty = TypeExpression::Primitive(PrimitiveType::Integer, span.clone());
         assert_eq!(int_ty.to_string(), "Integer");
 
         let arr_ty = TypeExpression::Array(
-            Box::new(TypeExpression::Primitive(PrimitiveType::String, span.clone())),
+            Box::new(TypeExpression::Primitive(
+                PrimitiveType::String,
+                span.clone(),
+            )),
             span.clone(),
         );
         assert_eq!(arr_ty.to_string(), "Array<String>");
 
         let map_ty = TypeExpression::Map(
-            Box::new(TypeExpression::Primitive(PrimitiveType::String, span.clone())),
-            Box::new(TypeExpression::Primitive(PrimitiveType::Integer, span.clone())),
+            Box::new(TypeExpression::Primitive(
+                PrimitiveType::String,
+                span.clone(),
+            )),
+            Box::new(TypeExpression::Primitive(
+                PrimitiveType::Integer,
+                span.clone(),
+            )),
             span.clone(),
         );
         assert_eq!(map_ty.to_string(), "Map<String, Integer>");
@@ -321,7 +340,11 @@ mod tests {
 
     #[test]
     fn test_enum_display() {
-        let span = Span { line: 1, column: 1, offset: 0 };
+        let span = Span {
+            line: 1,
+            column: 1,
+            offset: 0,
+        };
         let enum_ty = TypeExpression::Enum(
             vec![
                 SpannedValue::new("active".to_string(), span.clone()),
@@ -334,16 +357,32 @@ mod tests {
 
     #[test]
     fn test_literal_display() {
-        let span = Span { line: 1, column: 1, offset: 0 };
-        assert_eq!(LiteralValue::String("hello".to_string(), span.clone()).to_string(), "\"hello\"");
+        let span = Span {
+            line: 1,
+            column: 1,
+            offset: 0,
+        };
+        assert_eq!(
+            LiteralValue::String("hello".to_string(), span.clone()).to_string(),
+            "\"hello\""
+        );
         assert_eq!(LiteralValue::Integer(42, span.clone()).to_string(), "42");
-        assert_eq!(LiteralValue::Float(3.14, span.clone()).to_string(), "3.14");
-        assert_eq!(LiteralValue::Boolean(true, span.clone()).to_string(), "true");
+        #[allow(clippy::approx_constant)]
+        let float_val = LiteralValue::Float(3.14, span.clone());
+        assert_eq!(float_val.to_string(), "3.14");
+        assert_eq!(
+            LiteralValue::Boolean(true, span.clone()).to_string(),
+            "true"
+        );
     }
 
     #[test]
     fn test_spanned_value() {
-        let span = Span { line: 5, column: 10, offset: 50 };
+        let span = Span {
+            line: 5,
+            column: 10,
+            offset: 50,
+        };
         let sv = SpannedValue::new("test".to_string(), span.clone());
         assert_eq!(sv.value, "test");
         assert_eq!(sv.span, span);
@@ -351,14 +390,22 @@ mod tests {
 
     #[test]
     fn test_type_expression_span() {
-        let span = Span { line: 3, column: 7, offset: 30 };
+        let span = Span {
+            line: 3,
+            column: 7,
+            offset: 30,
+        };
         let ty = TypeExpression::Primitive(PrimitiveType::Boolean, span.clone());
         assert_eq!(ty.span(), &span);
     }
 
     #[test]
     fn test_object_display() {
-        let span = Span { line: 1, column: 1, offset: 0 };
+        let span = Span {
+            line: 1,
+            column: 1,
+            offset: 0,
+        };
         let obj = TypeExpression::Object(
             vec![
                 StateFieldNode {
@@ -381,11 +428,21 @@ mod tests {
 
     #[test]
     fn test_nested_type_display() {
-        let span = Span { line: 1, column: 1, offset: 0 };
+        let span = Span {
+            line: 1,
+            column: 1,
+            offset: 0,
+        };
         // Array<Map<String, Integer>>
         let inner = TypeExpression::Map(
-            Box::new(TypeExpression::Primitive(PrimitiveType::String, span.clone())),
-            Box::new(TypeExpression::Primitive(PrimitiveType::Integer, span.clone())),
+            Box::new(TypeExpression::Primitive(
+                PrimitiveType::String,
+                span.clone(),
+            )),
+            Box::new(TypeExpression::Primitive(
+                PrimitiveType::Integer,
+                span.clone(),
+            )),
             span.clone(),
         );
         let outer = TypeExpression::Array(Box::new(inner), span.clone());

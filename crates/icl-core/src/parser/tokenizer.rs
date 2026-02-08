@@ -40,15 +40,15 @@ pub enum Token {
     BooleanLiteral(bool),
 
     // Symbols
-    LBrace,    // {
-    RBrace,    // }
-    LBracket,  // [
-    RBracket,  // ]
-    LAngle,    // <
-    RAngle,    // >
-    Colon,     // :
-    Comma,     // ,
-    Equals,    // =
+    LBrace,   // {
+    RBrace,   // }
+    LBracket, // [
+    RBracket, // ]
+    LAngle,   // <
+    RAngle,   // >
+    Colon,    // :
+    Comma,    // ,
+    Equals,   // =
 
     // Other
     Identifier(String),
@@ -188,21 +188,76 @@ impl Tokenizer {
         let ch = self.peek().unwrap();
 
         match ch {
-            '{' => { self.advance(); Ok(SpannedToken { token: Token::LBrace, span }) }
-            '}' => { self.advance(); Ok(SpannedToken { token: Token::RBrace, span }) }
-            '[' => { self.advance(); Ok(SpannedToken { token: Token::LBracket, span }) }
-            ']' => { self.advance(); Ok(SpannedToken { token: Token::RBracket, span }) }
-            '<' => { self.advance(); Ok(SpannedToken { token: Token::LAngle, span }) }
-            '>' => { self.advance(); Ok(SpannedToken { token: Token::RAngle, span }) }
-            ':' => { self.advance(); Ok(SpannedToken { token: Token::Colon, span }) }
-            ',' => { self.advance(); Ok(SpannedToken { token: Token::Comma, span }) }
-            '=' => { self.advance(); Ok(SpannedToken { token: Token::Equals, span }) }
+            '{' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::LBrace,
+                    span,
+                })
+            }
+            '}' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::RBrace,
+                    span,
+                })
+            }
+            '[' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::LBracket,
+                    span,
+                })
+            }
+            ']' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::RBracket,
+                    span,
+                })
+            }
+            '<' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::LAngle,
+                    span,
+                })
+            }
+            '>' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::RAngle,
+                    span,
+                })
+            }
+            ':' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::Colon,
+                    span,
+                })
+            }
+            ',' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::Comma,
+                    span,
+                })
+            }
+            '=' => {
+                self.advance();
+                Ok(SpannedToken {
+                    token: Token::Equals,
+                    span,
+                })
+            }
             '"' => self.read_string(span),
             c if c.is_ascii_digit() => self.read_number(span),
             c if c.is_ascii_alphabetic() || c == '_' => self.read_identifier_or_keyword(span),
-            _ => Err(crate::Error::ParseError(
-                format!("Unexpected character '{}' at {}", ch, span)
-            )),
+            _ => Err(crate::Error::ParseError(format!(
+                "Unexpected character '{}' at {}",
+                ch, span
+            ))),
         }
     }
 
@@ -215,29 +270,31 @@ impl Tokenizer {
         loop {
             match self.advance() {
                 None => {
-                    return Err(crate::Error::ParseError(
-                        format!("Unterminated string starting at {}", span)
-                    ));
+                    return Err(crate::Error::ParseError(format!(
+                        "Unterminated string starting at {}",
+                        span
+                    )));
                 }
                 Some('"') => break,
-                Some('\\') => {
-                    match self.advance() {
-                        Some('n') => value.push('\n'),
-                        Some('t') => value.push('\t'),
-                        Some('\\') => value.push('\\'),
-                        Some('"') => value.push('"'),
-                        Some(c) => {
-                            return Err(crate::Error::ParseError(
-                                format!("Invalid escape sequence '\\{}' at {}", c, self.current_span())
-                            ));
-                        }
-                        None => {
-                            return Err(crate::Error::ParseError(
-                                format!("Unterminated escape sequence at {}", self.current_span())
-                            ));
-                        }
+                Some('\\') => match self.advance() {
+                    Some('n') => value.push('\n'),
+                    Some('t') => value.push('\t'),
+                    Some('\\') => value.push('\\'),
+                    Some('"') => value.push('"'),
+                    Some(c) => {
+                        return Err(crate::Error::ParseError(format!(
+                            "Invalid escape sequence '\\{}' at {}",
+                            c,
+                            self.current_span()
+                        )));
                     }
-                }
+                    None => {
+                        return Err(crate::Error::ParseError(format!(
+                            "Unterminated escape sequence at {}",
+                            self.current_span()
+                        )));
+                    }
+                },
                 Some(c) => value.push(c),
             }
         }
@@ -271,7 +328,14 @@ impl Tokenizer {
         if self.peek() == Some('-') && !has_dot {
             // Could be ISO8601 timestamp — collect the rest
             while let Some(ch) = self.peek() {
-                if ch.is_ascii_alphanumeric() || ch == '-' || ch == ':' || ch == 'T' || ch == 'Z' || ch == '+' || ch == '.' {
+                if ch.is_ascii_alphanumeric()
+                    || ch == '-'
+                    || ch == ':'
+                    || ch == 'T'
+                    || ch == 'Z'
+                    || ch == '+'
+                    || ch == '.'
+                {
                     self.advance();
                 } else {
                     break;
@@ -285,9 +349,10 @@ impl Tokenizer {
                     span,
                 });
             } else {
-                return Err(crate::Error::ParseError(
-                    format!("Invalid timestamp '{}' at {}", text, span)
-                ));
+                return Err(crate::Error::ParseError(format!(
+                    "Invalid timestamp '{}' at {}",
+                    text, span
+                )));
             }
         }
 
@@ -386,10 +451,7 @@ mod tests {
     }
 
     fn tokenize_err(input: &str) -> String {
-        Tokenizer::new(input)
-            .tokenize()
-            .unwrap_err()
-            .to_string()
+        Tokenizer::new(input).tokenize().unwrap_err().to_string()
     }
 
     // ── Keywords ───────────────────────────────────────
@@ -397,47 +459,56 @@ mod tests {
     #[test]
     fn test_tokenize_section_keywords() {
         let tokens = tokenize("Contract Identity PurposeStatement");
-        assert_eq!(tokens, vec![
-            Token::Contract,
-            Token::Identity,
-            Token::PurposeStatement,
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Contract,
+                Token::Identity,
+                Token::PurposeStatement,
+                Token::Eof,
+            ]
+        );
     }
 
     #[test]
     fn test_tokenize_all_section_keywords() {
         let input = "Contract Identity PurposeStatement DataSemantics BehavioralSemantics ExecutionConstraints HumanMachineContract Extensions";
         let tokens = tokenize(input);
-        assert_eq!(tokens, vec![
-            Token::Contract,
-            Token::Identity,
-            Token::PurposeStatement,
-            Token::DataSemantics,
-            Token::BehavioralSemantics,
-            Token::ExecutionConstraints,
-            Token::HumanMachineContract,
-            Token::Extensions,
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Contract,
+                Token::Identity,
+                Token::PurposeStatement,
+                Token::DataSemantics,
+                Token::BehavioralSemantics,
+                Token::ExecutionConstraints,
+                Token::HumanMachineContract,
+                Token::Extensions,
+                Token::Eof,
+            ]
+        );
     }
 
     #[test]
     fn test_tokenize_type_keywords() {
         let tokens = tokenize("Integer Float String Boolean ISO8601 UUID Array Map Object Enum");
-        assert_eq!(tokens, vec![
-            Token::IntegerType,
-            Token::FloatType,
-            Token::StringType,
-            Token::BooleanType,
-            Token::Iso8601Type,
-            Token::UuidType,
-            Token::ArrayType,
-            Token::MapType,
-            Token::ObjectType,
-            Token::EnumType,
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::IntegerType,
+                Token::FloatType,
+                Token::StringType,
+                Token::BooleanType,
+                Token::Iso8601Type,
+                Token::UuidType,
+                Token::ArrayType,
+                Token::MapType,
+                Token::ObjectType,
+                Token::EnumType,
+                Token::Eof,
+            ]
+        );
     }
 
     // ── String literals ────────────────────────────────
@@ -445,28 +516,31 @@ mod tests {
     #[test]
     fn test_tokenize_string_literal() {
         let tokens = tokenize(r#""hello world""#);
-        assert_eq!(tokens, vec![
-            Token::StringLiteral("hello world".to_string()),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![Token::StringLiteral("hello world".to_string()), Token::Eof,]
+        );
     }
 
     #[test]
     fn test_tokenize_string_escape_sequences() {
         let tokens = tokenize(r#""line\none\ttab\\slash\"quote""#);
-        assert_eq!(tokens, vec![
-            Token::StringLiteral("line\none\ttab\\slash\"quote".to_string()),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::StringLiteral("line\none\ttab\\slash\"quote".to_string()),
+                Token::Eof,
+            ]
+        );
     }
 
     #[test]
     fn test_tokenize_empty_string() {
         let tokens = tokenize(r#""""#);
-        assert_eq!(tokens, vec![
-            Token::StringLiteral(String::new()),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![Token::StringLiteral(String::new()), Token::Eof,]
+        );
     }
 
     #[test]
@@ -480,23 +554,30 @@ mod tests {
     #[test]
     fn test_tokenize_integer() {
         let tokens = tokenize("42 0 999999");
-        assert_eq!(tokens, vec![
-            Token::IntegerLiteral(42),
-            Token::IntegerLiteral(0),
-            Token::IntegerLiteral(999999),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::IntegerLiteral(42),
+                Token::IntegerLiteral(0),
+                Token::IntegerLiteral(999999),
+                Token::Eof,
+            ]
+        );
     }
 
     #[test]
+    #[allow(clippy::approx_constant)]
     fn test_tokenize_float() {
         let tokens = tokenize("3.14 0.0 1.0");
-        assert_eq!(tokens, vec![
-            Token::FloatLiteral(3.14),
-            Token::FloatLiteral(0.0),
-            Token::FloatLiteral(1.0),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::FloatLiteral(3.14),
+                Token::FloatLiteral(0.0),
+                Token::FloatLiteral(1.0),
+                Token::Eof,
+            ]
+        );
     }
 
     // ── ISO8601 timestamps ─────────────────────────────
@@ -504,10 +585,13 @@ mod tests {
     #[test]
     fn test_tokenize_timestamp() {
         let tokens = tokenize("2026-02-01T00:00:00Z");
-        assert_eq!(tokens, vec![
-            Token::StringLiteral("2026-02-01T00:00:00Z".to_string()),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::StringLiteral("2026-02-01T00:00:00Z".to_string()),
+                Token::Eof,
+            ]
+        );
     }
 
     // ── Booleans ───────────────────────────────────────
@@ -515,11 +599,14 @@ mod tests {
     #[test]
     fn test_tokenize_booleans() {
         let tokens = tokenize("true false");
-        assert_eq!(tokens, vec![
-            Token::BooleanLiteral(true),
-            Token::BooleanLiteral(false),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::BooleanLiteral(true),
+                Token::BooleanLiteral(false),
+                Token::Eof,
+            ]
+        );
     }
 
     // ── Symbols ────────────────────────────────────────
@@ -527,18 +614,21 @@ mod tests {
     #[test]
     fn test_tokenize_symbols() {
         let tokens = tokenize("{ } [ ] < > : , =");
-        assert_eq!(tokens, vec![
-            Token::LBrace,
-            Token::RBrace,
-            Token::LBracket,
-            Token::RBracket,
-            Token::LAngle,
-            Token::RAngle,
-            Token::Colon,
-            Token::Comma,
-            Token::Equals,
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::LBrace,
+                Token::RBrace,
+                Token::LBracket,
+                Token::RBracket,
+                Token::LAngle,
+                Token::RAngle,
+                Token::Colon,
+                Token::Comma,
+                Token::Equals,
+                Token::Eof,
+            ]
+        );
     }
 
     // ── Comments ───────────────────────────────────────
@@ -546,29 +636,19 @@ mod tests {
     #[test]
     fn test_skip_line_comments() {
         let tokens = tokenize("Contract // this is a comment\nIdentity");
-        assert_eq!(tokens, vec![
-            Token::Contract,
-            Token::Identity,
-            Token::Eof,
-        ]);
+        assert_eq!(tokens, vec![Token::Contract, Token::Identity, Token::Eof,]);
     }
 
     #[test]
     fn test_skip_comment_at_start() {
         let tokens = tokenize("// comment\nContract");
-        assert_eq!(tokens, vec![
-            Token::Contract,
-            Token::Eof,
-        ]);
+        assert_eq!(tokens, vec![Token::Contract, Token::Eof,]);
     }
 
     #[test]
     fn test_skip_multiple_comments() {
         let tokens = tokenize("// first\n// second\nContract");
-        assert_eq!(tokens, vec![
-            Token::Contract,
-            Token::Eof,
-        ]);
+        assert_eq!(tokens, vec![Token::Contract, Token::Eof,]);
     }
 
     // ── Identifiers ────────────────────────────────────
@@ -576,36 +656,72 @@ mod tests {
     #[test]
     fn test_tokenize_identifiers() {
         let tokens = tokenize("stable_id version count");
-        assert_eq!(tokens, vec![
-            Token::Identifier("stable_id".to_string()),
-            Token::Identifier("version".to_string()),
-            Token::Identifier("count".to_string()),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Identifier("stable_id".to_string()),
+                Token::Identifier("version".to_string()),
+                Token::Identifier("count".to_string()),
+                Token::Eof,
+            ]
+        );
     }
 
     #[test]
     fn test_tokenize_identifier_with_hyphens() {
         let tokens = tokenize("custom-system my-extension");
-        assert_eq!(tokens, vec![
-            Token::Identifier("custom-system".to_string()),
-            Token::Identifier("my-extension".to_string()),
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Identifier("custom-system".to_string()),
+                Token::Identifier("my-extension".to_string()),
+                Token::Eof,
+            ]
+        );
     }
 
     // ── Span tracking ──────────────────────────────────
 
     #[test]
     fn test_span_tracking() {
-        let tokens = Tokenizer::new("Contract {\n  Identity\n}").tokenize().unwrap();
-        assert_eq!(tokens[0].span, Span { line: 1, column: 1, offset: 0 });
+        let tokens = Tokenizer::new("Contract {\n  Identity\n}")
+            .tokenize()
+            .unwrap();
+        assert_eq!(
+            tokens[0].span,
+            Span {
+                line: 1,
+                column: 1,
+                offset: 0
+            }
+        );
         assert_eq!(tokens[0].token, Token::Contract);
-        assert_eq!(tokens[1].span, Span { line: 1, column: 10, offset: 9 });
+        assert_eq!(
+            tokens[1].span,
+            Span {
+                line: 1,
+                column: 10,
+                offset: 9
+            }
+        );
         assert_eq!(tokens[1].token, Token::LBrace);
-        assert_eq!(tokens[2].span, Span { line: 2, column: 3, offset: 13 });
+        assert_eq!(
+            tokens[2].span,
+            Span {
+                line: 2,
+                column: 3,
+                offset: 13
+            }
+        );
         assert_eq!(tokens[2].token, Token::Identity);
-        assert_eq!(tokens[3].span, Span { line: 3, column: 1, offset: 22 });
+        assert_eq!(
+            tokens[3].span,
+            Span {
+                line: 3,
+                column: 1,
+                offset: 22
+            }
+        );
         assert_eq!(tokens[3].token, Token::RBrace);
     }
 
@@ -646,48 +762,57 @@ mod tests {
   }
 }"#;
         let tokens = tokenize(input);
-        assert_eq!(tokens, vec![
-            Token::Contract,
-            Token::LBrace,
-            Token::Identity,
-            Token::LBrace,
-            Token::Identifier("stable_id".to_string()),
-            Token::Colon,
-            Token::StringLiteral("test-001".to_string()),
-            Token::Comma,
-            Token::Identifier("version".to_string()),
-            Token::Colon,
-            Token::IntegerLiteral(1),
-            Token::RBrace,
-            Token::RBrace,
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Contract,
+                Token::LBrace,
+                Token::Identity,
+                Token::LBrace,
+                Token::Identifier("stable_id".to_string()),
+                Token::Colon,
+                Token::StringLiteral("test-001".to_string()),
+                Token::Comma,
+                Token::Identifier("version".to_string()),
+                Token::Colon,
+                Token::IntegerLiteral(1),
+                Token::RBrace,
+                Token::RBrace,
+                Token::Eof,
+            ]
+        );
     }
 
     #[test]
     fn test_tokenize_type_expression() {
         let tokens = tokenize("Array<String>");
-        assert_eq!(tokens, vec![
-            Token::ArrayType,
-            Token::LAngle,
-            Token::StringType,
-            Token::RAngle,
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::ArrayType,
+                Token::LAngle,
+                Token::StringType,
+                Token::RAngle,
+                Token::Eof,
+            ]
+        );
     }
 
     #[test]
     fn test_tokenize_map_type() {
         let tokens = tokenize("Map<String, Integer>");
-        assert_eq!(tokens, vec![
-            Token::MapType,
-            Token::LAngle,
-            Token::StringType,
-            Token::Comma,
-            Token::IntegerType,
-            Token::RAngle,
-            Token::Eof,
-        ]);
+        assert_eq!(
+            tokens,
+            vec![
+                Token::MapType,
+                Token::LAngle,
+                Token::StringType,
+                Token::Comma,
+                Token::IntegerType,
+                Token::RAngle,
+                Token::Eof,
+            ]
+        );
     }
 
     // ── Determinism proof ──────────────────────────────

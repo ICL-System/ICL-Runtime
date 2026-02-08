@@ -20,11 +20,11 @@
 //! - **Bounded**: All execution bounded in memory and time
 //! - **Canonical**: One normalized form per contract
 
-pub mod parser;
-pub mod normalizer;
-pub mod verifier;
-pub mod executor;
 pub mod error;
+pub mod executor;
+pub mod normalizer;
+pub mod parser;
+pub mod verifier;
 
 pub use error::{Error, Result};
 pub use parser::ast::*;

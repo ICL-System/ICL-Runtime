@@ -148,10 +148,7 @@ pub unsafe extern "C" fn icl_verify(text: *const c_char) -> IclResult {
 /// `text` and `inputs` must be valid null-terminated UTF-8 C strings.
 /// The caller must free the returned strings with `icl_free_string()`.
 #[no_mangle]
-pub unsafe extern "C" fn icl_execute(
-    text: *const c_char,
-    inputs: *const c_char,
-) -> IclResult {
+pub unsafe extern "C" fn icl_execute(text: *const c_char, inputs: *const c_char) -> IclResult {
     let text = match cstr_to_str(text) {
         Some(s) => s,
         None => return IclResult::err("null or invalid UTF-8 text".into()),

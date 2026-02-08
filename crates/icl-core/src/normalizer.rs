@@ -14,7 +14,7 @@
 //! - **Unique**: each distinct contract has one canonical form
 //! - **Semantic preserving**: no information loss
 
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 use crate::parser::ast::*;
 use crate::parser::tokenizer::Span;
@@ -52,7 +52,9 @@ pub fn normalize(icl: &str) -> Result<String> {
 /// 6. Compute SHA-256 semantic hash
 pub fn normalize_ast(mut ast: ContractNode) -> ContractNode {
     // ── Step 1: Sort state fields ──────────────────────
-    ast.data_semantics.state.sort_by(|a, b| a.name.value.cmp(&b.name.value));
+    ast.data_semantics
+        .state
+        .sort_by(|a, b| a.name.value.cmp(&b.name.value));
 
     // Sort Object type fields recursively
     for field in &mut ast.data_semantics.state {
@@ -60,14 +62,19 @@ pub fn normalize_ast(mut ast: ContractNode) -> ContractNode {
     }
 
     // ── Step 2: Sort invariants ────────────────────────
-    ast.data_semantics.invariants.sort_by(|a, b| a.value.cmp(&b.value));
+    ast.data_semantics
+        .invariants
+        .sort_by(|a, b| a.value.cmp(&b.value));
 
     // ── Step 3: Sort operations by name ────────────────
-    ast.behavioral_semantics.operations.sort_by(|a, b| a.name.value.cmp(&b.name.value));
+    ast.behavioral_semantics
+        .operations
+        .sort_by(|a, b| a.name.value.cmp(&b.name.value));
 
     // ── Step 4: Sort operation internals ───────────────
     for op in &mut ast.behavioral_semantics.operations {
-        op.parameters.sort_by(|a, b| a.name.value.cmp(&b.name.value));
+        op.parameters
+            .sort_by(|a, b| a.name.value.cmp(&b.name.value));
         for param in &mut op.parameters {
             normalize_type_fields(&mut param.type_expr);
         }
@@ -75,11 +82,21 @@ pub fn normalize_ast(mut ast: ContractNode) -> ContractNode {
     }
 
     // ── Step 5: Sort string lists ──────────────────────
-    ast.execution_constraints.trigger_types.sort_by(|a, b| a.value.cmp(&b.value));
-    ast.execution_constraints.external_permissions.sort_by(|a, b| a.value.cmp(&b.value));
-    ast.human_machine_contract.system_commitments.sort_by(|a, b| a.value.cmp(&b.value));
-    ast.human_machine_contract.system_refusals.sort_by(|a, b| a.value.cmp(&b.value));
-    ast.human_machine_contract.user_obligations.sort_by(|a, b| a.value.cmp(&b.value));
+    ast.execution_constraints
+        .trigger_types
+        .sort_by(|a, b| a.value.cmp(&b.value));
+    ast.execution_constraints
+        .external_permissions
+        .sort_by(|a, b| a.value.cmp(&b.value));
+    ast.human_machine_contract
+        .system_commitments
+        .sort_by(|a, b| a.value.cmp(&b.value));
+    ast.human_machine_contract
+        .system_refusals
+        .sort_by(|a, b| a.value.cmp(&b.value));
+    ast.human_machine_contract
+        .user_obligations
+        .sort_by(|a, b| a.value.cmp(&b.value));
 
     // ── Step 6: Sort extensions ────────────────────────
     if let Some(ref mut ext) = ast.extensions {
@@ -220,12 +237,24 @@ fn serialize_execution_constraints(out: &mut String, ec: &ExecutionConstraintsNo
     // resource_limits
     write_indent(out, 4);
     out.push_str("resource_limits: {\n");
-    write_field_int(out, 6, "computation_timeout_ms",
-        ec.resource_limits.computation_timeout_ms.value);
-    write_field_int(out, 6, "max_memory_bytes",
-        ec.resource_limits.max_memory_bytes.value);
-    write_field_int(out, 6, "max_state_size_bytes",
-        ec.resource_limits.max_state_size_bytes.value);
+    write_field_int(
+        out,
+        6,
+        "computation_timeout_ms",
+        ec.resource_limits.computation_timeout_ms.value,
+    );
+    write_field_int(
+        out,
+        6,
+        "max_memory_bytes",
+        ec.resource_limits.max_memory_bytes.value,
+    );
+    write_field_int(
+        out,
+        6,
+        "max_state_size_bytes",
+        ec.resource_limits.max_state_size_bytes.value,
+    );
     write_indent(out, 4);
     out.push_str("},\n");
 
@@ -437,7 +466,11 @@ fn normalize_type_fields(ty: &mut TypeExpression) {
 }
 
 fn dummy_span() -> Span {
-    Span { line: 0, column: 0, offset: 0 }
+    Span {
+        line: 0,
+        column: 0,
+        offset: 0,
+    }
 }
 
 // ── SHA-256 Hash Computation ──────────────────────────────
@@ -473,16 +506,41 @@ fn serialize_contract_to_icl(contract: &crate::Contract) -> String {
     out.push_str("  Identity {\n");
     write_field_str(&mut out, 4, "stable_id", &contract.identity.stable_id);
     write_field_int(&mut out, 4, "version", contract.identity.version as i64);
-    write_field_str(&mut out, 4, "created_timestamp", &contract.identity.created_timestamp);
+    write_field_str(
+        &mut out,
+        4,
+        "created_timestamp",
+        &contract.identity.created_timestamp,
+    );
     write_field_str(&mut out, 4, "owner", &contract.identity.owner);
-    write_field_str(&mut out, 4, "semantic_hash", &contract.identity.semantic_hash);
+    write_field_str(
+        &mut out,
+        4,
+        "semantic_hash",
+        &contract.identity.semantic_hash,
+    );
     out.push_str("  }\n");
 
     // PurposeStatement
     out.push_str("  PurposeStatement {\n");
-    write_field_str(&mut out, 4, "narrative", &contract.purpose_statement.narrative);
-    write_field_str(&mut out, 4, "intent_source", &contract.purpose_statement.intent_source);
-    write_field_float(&mut out, 4, "confidence_level", contract.purpose_statement.confidence_level);
+    write_field_str(
+        &mut out,
+        4,
+        "narrative",
+        &contract.purpose_statement.narrative,
+    );
+    write_field_str(
+        &mut out,
+        4,
+        "intent_source",
+        &contract.purpose_statement.intent_source,
+    );
+    write_field_float(
+        &mut out,
+        4,
+        "confidence_level",
+        contract.purpose_statement.confidence_level,
+    );
     out.push_str("  }\n");
 
     // DataSemantics — state as empty since Contract uses serde_json::Value
@@ -513,7 +571,9 @@ fn serialize_contract_to_icl(contract: &crate::Contract) -> String {
         write_indent(&mut out, 8);
         out.push_str("side_effects: [");
         for (i, se) in op.side_effects.iter().enumerate() {
-            if i > 0 { out.push_str(", "); }
+            if i > 0 {
+                out.push_str(", ");
+            }
             out.push('"');
             out.push_str(se);
             out.push('"');
@@ -529,38 +589,93 @@ fn serialize_contract_to_icl(contract: &crate::Contract) -> String {
     out.push_str("  ExecutionConstraints {\n");
     write_indent(&mut out, 4);
     out.push_str("trigger_types: [");
-    for (i, t) in contract.execution_constraints.trigger_types.iter().enumerate() {
-        if i > 0 { out.push_str(", "); }
+    for (i, t) in contract
+        .execution_constraints
+        .trigger_types
+        .iter()
+        .enumerate()
+    {
+        if i > 0 {
+            out.push_str(", ");
+        }
         out.push('"');
         out.push_str(t);
         out.push('"');
     }
     out.push_str("],\n");
     out.push_str("    resource_limits: {\n");
-    write_field_int(&mut out, 6, "max_memory_bytes",
-        contract.execution_constraints.resource_limits.max_memory_bytes as i64);
-    write_field_int(&mut out, 6, "computation_timeout_ms",
-        contract.execution_constraints.resource_limits.computation_timeout_ms as i64);
-    write_field_int(&mut out, 6, "max_state_size_bytes",
-        contract.execution_constraints.resource_limits.max_state_size_bytes as i64);
+    write_field_int(
+        &mut out,
+        6,
+        "max_memory_bytes",
+        contract
+            .execution_constraints
+            .resource_limits
+            .max_memory_bytes as i64,
+    );
+    write_field_int(
+        &mut out,
+        6,
+        "computation_timeout_ms",
+        contract
+            .execution_constraints
+            .resource_limits
+            .computation_timeout_ms as i64,
+    );
+    write_field_int(
+        &mut out,
+        6,
+        "max_state_size_bytes",
+        contract
+            .execution_constraints
+            .resource_limits
+            .max_state_size_bytes as i64,
+    );
     out.push_str("    },\n");
     write_indent(&mut out, 4);
     out.push_str("external_permissions: [");
-    for (i, p) in contract.execution_constraints.external_permissions.iter().enumerate() {
-        if i > 0 { out.push_str(", "); }
+    for (i, p) in contract
+        .execution_constraints
+        .external_permissions
+        .iter()
+        .enumerate()
+    {
+        if i > 0 {
+            out.push_str(", ");
+        }
         out.push('"');
         out.push_str(p);
         out.push('"');
     }
     out.push_str("],\n");
-    write_field_str(&mut out, 4, "sandbox_mode", &contract.execution_constraints.sandbox_mode);
+    write_field_str(
+        &mut out,
+        4,
+        "sandbox_mode",
+        &contract.execution_constraints.sandbox_mode,
+    );
     out.push_str("  }\n");
 
     // HumanMachineContract
     out.push_str("  HumanMachineContract {\n");
-    write_string_list(&mut out, 4, "system_commitments", &contract.human_machine_contract.system_commitments);
-    write_string_list(&mut out, 4, "system_refusals", &contract.human_machine_contract.system_refusals);
-    write_string_list(&mut out, 4, "user_obligations", &contract.human_machine_contract.user_obligations);
+    write_string_list(
+        &mut out,
+        4,
+        "system_commitments",
+        &contract.human_machine_contract.system_commitments,
+    );
+    write_string_list(
+        &mut out,
+        4,
+        "system_refusals",
+        &contract.human_machine_contract.system_refusals,
+    );
+    write_string_list(
+        &mut out,
+        4,
+        "user_obligations",
+        &contract.human_machine_contract.user_obligations,
+    );
     out.push_str("  }\n");
 
     out.push_str("}\n");
@@ -634,7 +749,7 @@ mod tests {
 
     fn read_fixture(path: &str) -> String {
         let full = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../ICL-Spec")
+            .join("../../tests/fixtures")
             .join(path);
         fs::read_to_string(&full)
             .unwrap_or_else(|e| panic!("Failed to read {}: {}", full.display(), e))
@@ -655,7 +770,11 @@ mod tests {
         // Normalized output must parse successfully
         let normalized = normalize(MINIMAL_CONTRACT).unwrap();
         let ast = crate::parser::parse(&normalized);
-        assert!(ast.is_ok(), "Normalized output doesn't parse: {:?}", ast.err());
+        assert!(
+            ast.is_ok(),
+            "Normalized output doesn't parse: {:?}",
+            ast.err()
+        );
     }
 
     // ── Sorting ────────────────────────────────────────
@@ -705,7 +824,10 @@ mod tests {
         let normalized = normalize(input).unwrap();
         let a_pos = normalized.find("a_field").unwrap();
         let z_pos = normalized.find("z_field").unwrap();
-        assert!(a_pos < z_pos, "a_field should come before z_field in normalized output");
+        assert!(
+            a_pos < z_pos,
+            "a_field should come before z_field in normalized output"
+        );
     }
 
     #[test]
@@ -862,8 +984,11 @@ mod tests {
 
         // SHA-256 hex is 64 chars
         assert_eq!(hash.len(), 64, "Hash should be 64 hex chars, got: {}", hash);
-        assert!(hash.chars().all(|c| c.is_ascii_hexdigit()),
-            "Hash should be hex, got: {}", hash);
+        assert!(
+            hash.chars().all(|c| c.is_ascii_hexdigit()),
+            "Hash should be hex, got: {}",
+            hash
+        );
     }
 
     #[test]
@@ -896,7 +1021,10 @@ mod tests {
             let ast = crate::parser::parse(&n).unwrap();
             ast.identity.semantic_hash.value
         };
-        assert_ne!(hash_a, hash_b, "Different contracts should have different hashes");
+        assert_ne!(
+            hash_a, hash_b,
+            "Different contracts should have different hashes"
+        );
     }
 
     // ── Idempotence proof ──────────────────────────────
@@ -905,7 +1033,10 @@ mod tests {
     fn test_idempotence() {
         let once = normalize(MINIMAL_CONTRACT).unwrap();
         let twice = normalize(&once).unwrap();
-        assert_eq!(once, twice, "normalize(normalize(x)) must equal normalize(x)");
+        assert_eq!(
+            once, twice,
+            "normalize(normalize(x)) must equal normalize(x)"
+        );
     }
 
     #[test]
@@ -921,7 +1052,10 @@ mod tests {
         let input = read_fixture("conformance/valid/multiple-operations.icl");
         let once = normalize(&input).unwrap();
         let twice = normalize(&once).unwrap();
-        assert_eq!(once, twice, "Idempotence failure on contract with operations");
+        assert_eq!(
+            once, twice,
+            "Idempotence failure on contract with operations"
+        );
     }
 
     #[test]
@@ -929,7 +1063,10 @@ mod tests {
         let input = read_fixture("conformance/valid/with-extensions.icl");
         let once = normalize(&input).unwrap();
         let twice = normalize(&once).unwrap();
-        assert_eq!(once, twice, "Idempotence failure on contract with extensions");
+        assert_eq!(
+            once, twice,
+            "Idempotence failure on contract with extensions"
+        );
     }
 
     // ── Determinism proof (100 iterations) ─────────────
@@ -965,27 +1102,46 @@ mod tests {
         let normalized = crate::parser::parse(&normalized_text).unwrap();
 
         // Identity content preserved
-        assert_eq!(original.identity.stable_id.value, normalized.identity.stable_id.value);
-        assert_eq!(original.identity.version.value, normalized.identity.version.value);
-        assert_eq!(original.identity.owner.value, normalized.identity.owner.value);
+        assert_eq!(
+            original.identity.stable_id.value,
+            normalized.identity.stable_id.value
+        );
+        assert_eq!(
+            original.identity.version.value,
+            normalized.identity.version.value
+        );
+        assert_eq!(
+            original.identity.owner.value,
+            normalized.identity.owner.value
+        );
 
         // PurposeStatement preserved
-        assert_eq!(original.purpose_statement.narrative.value,
-            normalized.purpose_statement.narrative.value);
-        assert_eq!(original.purpose_statement.confidence_level.value,
-            normalized.purpose_statement.confidence_level.value);
+        assert_eq!(
+            original.purpose_statement.narrative.value,
+            normalized.purpose_statement.narrative.value
+        );
+        assert_eq!(
+            original.purpose_statement.confidence_level.value,
+            normalized.purpose_statement.confidence_level.value
+        );
 
         // State fields preserved (count)
-        assert_eq!(original.data_semantics.state.len(),
-            normalized.data_semantics.state.len());
+        assert_eq!(
+            original.data_semantics.state.len(),
+            normalized.data_semantics.state.len()
+        );
 
         // Operations preserved
-        assert_eq!(original.behavioral_semantics.operations.len(),
-            normalized.behavioral_semantics.operations.len());
+        assert_eq!(
+            original.behavioral_semantics.operations.len(),
+            normalized.behavioral_semantics.operations.len()
+        );
 
         // ExecutionConstraints preserved
-        assert_eq!(original.execution_constraints.sandbox_mode.value,
-            normalized.execution_constraints.sandbox_mode.value);
+        assert_eq!(
+            original.execution_constraints.sandbox_mode.value,
+            normalized.execution_constraints.sandbox_mode.value
+        );
     }
 
     #[test]
@@ -995,14 +1151,24 @@ mod tests {
         let normalized_text = normalize(&input).unwrap();
         let normalized = crate::parser::parse(&normalized_text).unwrap();
 
-        assert_eq!(original.behavioral_semantics.operations.len(),
-            normalized.behavioral_semantics.operations.len());
+        assert_eq!(
+            original.behavioral_semantics.operations.len(),
+            normalized.behavioral_semantics.operations.len()
+        );
 
         // All operation names preserved (may be reordered)
-        let mut orig_names: Vec<_> = original.behavioral_semantics.operations
-            .iter().map(|o| o.name.value.clone()).collect();
-        let mut norm_names: Vec<_> = normalized.behavioral_semantics.operations
-            .iter().map(|o| o.name.value.clone()).collect();
+        let mut orig_names: Vec<_> = original
+            .behavioral_semantics
+            .operations
+            .iter()
+            .map(|o| o.name.value.clone())
+            .collect();
+        let mut norm_names: Vec<_> = normalized
+            .behavioral_semantics
+            .operations
+            .iter()
+            .map(|o| o.name.value.clone())
+            .collect();
         orig_names.sort();
         norm_names.sort();
         assert_eq!(orig_names, norm_names);
@@ -1015,7 +1181,10 @@ mod tests {
         let input = read_fixture("conformance/valid/minimal-contract.icl");
         let normalized = normalize(&input).unwrap();
         let reparsed = crate::parser::parse(&normalized);
-        assert!(reparsed.is_ok(), "Normalized valid/minimal-contract.icl doesn't reparse");
+        assert!(
+            reparsed.is_ok(),
+            "Normalized valid/minimal-contract.icl doesn't reparse"
+        );
     }
 
     #[test]
@@ -1023,7 +1192,10 @@ mod tests {
         let input = read_fixture("conformance/valid/all-primitive-types.icl");
         let normalized = normalize(&input).unwrap();
         let reparsed = crate::parser::parse(&normalized);
-        assert!(reparsed.is_ok(), "Normalized valid/all-primitive-types.icl doesn't reparse");
+        assert!(
+            reparsed.is_ok(),
+            "Normalized valid/all-primitive-types.icl doesn't reparse"
+        );
     }
 
     #[test]
@@ -1031,7 +1203,10 @@ mod tests {
         let input = read_fixture("conformance/valid/composite-types.icl");
         let normalized = normalize(&input).unwrap();
         let reparsed = crate::parser::parse(&normalized);
-        assert!(reparsed.is_ok(), "Normalized valid/composite-types.icl doesn't reparse");
+        assert!(
+            reparsed.is_ok(),
+            "Normalized valid/composite-types.icl doesn't reparse"
+        );
     }
 
     #[test]
@@ -1039,7 +1214,10 @@ mod tests {
         let input = read_fixture("conformance/valid/multiple-operations.icl");
         let normalized = normalize(&input).unwrap();
         let reparsed = crate::parser::parse(&normalized);
-        assert!(reparsed.is_ok(), "Normalized valid/multiple-operations.icl doesn't reparse");
+        assert!(
+            reparsed.is_ok(),
+            "Normalized valid/multiple-operations.icl doesn't reparse"
+        );
     }
 
     #[test]
@@ -1047,6 +1225,9 @@ mod tests {
         let input = read_fixture("conformance/valid/with-extensions.icl");
         let normalized = normalize(&input).unwrap();
         let reparsed = crate::parser::parse(&normalized);
-        assert!(reparsed.is_ok(), "Normalized valid/with-extensions.icl doesn't reparse");
+        assert!(
+            reparsed.is_ok(),
+            "Normalized valid/with-extensions.icl doesn't reparse"
+        );
     }
 }

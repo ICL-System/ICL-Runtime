@@ -134,7 +134,10 @@ fn cmd_validate(file: &PathBuf, json: bool, quiet: bool) -> i32 {
                     "error": format!("{}", e),
                     "phase": "parse"
                 });
-                println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default());
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&output).unwrap_or_default()
+                );
             } else {
                 eprintln!("{} {}", "error:".red().bold(), e);
             }
@@ -165,14 +168,13 @@ fn cmd_validate(file: &PathBuf, json: bool, quiet: bool) -> i32 {
             "warnings": result.warnings().len(),
             "diagnostics": diagnostics,
         });
-        println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&output).unwrap_or_default()
+        );
     } else if result.is_valid() {
         if !quiet {
-            println!(
-                "{} {} is valid",
-                "✓".green().bold(),
-                file.display()
-            );
+            println!("{} {} is valid", "✓".green().bold(), file.display());
             let warning_count = result.warnings().len();
             if warning_count > 0 {
                 for w in result.warnings() {
@@ -238,7 +240,10 @@ fn cmd_verify(file: &PathBuf, json: bool, quiet: bool) -> i32 {
                     "error": format!("{}", e),
                     "phase": "parse"
                 });
-                println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default());
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&output).unwrap_or_default()
+                );
             } else {
                 eprintln!("{} {}", "error:".red().bold(), e);
             }
@@ -268,7 +273,10 @@ fn cmd_verify(file: &PathBuf, json: bool, quiet: bool) -> i32 {
             "warnings": result.warnings().len(),
             "diagnostics": diagnostics,
         });
-        println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&output).unwrap_or_default()
+        );
     } else if result.is_valid() {
         if !quiet {
             println!(
@@ -322,7 +330,12 @@ fn cmd_fmt(file: &PathBuf, write: bool, quiet: bool) -> i32 {
                         EXIT_SUCCESS
                     }
                     Err(e) => {
-                        eprintln!("{} failed to write {}: {}", "error:".red().bold(), file.display(), e);
+                        eprintln!(
+                            "{} failed to write {}: {}",
+                            "error:".red().bold(),
+                            file.display(),
+                            e
+                        );
                         EXIT_ERROR
                     }
                 }
@@ -397,14 +410,8 @@ fn cmd_diff(file_a: &PathBuf, file_b: &PathBuf, _quiet: bool) -> i32 {
         let lines_b: Vec<&str> = canonical_b.lines().collect();
         let max_lines = lines_a.len().max(lines_b.len());
 
-        println!(
-            "--- {} (canonical)",
-            file_a.display().to_string().red()
-        );
-        println!(
-            "+++ {} (canonical)",
-            file_b.display().to_string().green()
-        );
+        println!("--- {} (canonical)", file_a.display().to_string().red());
+        println!("+++ {} (canonical)", file_b.display().to_string().green());
 
         for i in 0..max_lines {
             let la = lines_a.get(i).copied().unwrap_or("");
@@ -446,11 +453,7 @@ fn cmd_init(name: Option<&str>, quiet: bool) -> i32 {
     let filename = format!("{}.icl", contract_name);
 
     if std::path::Path::new(&filename).exists() {
-        eprintln!(
-            "{} {} already exists",
-            "error:".red().bold(),
-            filename
-        );
+        eprintln!("{} {} already exists", "error:".red().bold(), filename);
         return EXIT_ERROR;
     }
 
@@ -510,7 +513,12 @@ fn cmd_init(name: Option<&str>, quiet: bool) -> i32 {
             EXIT_SUCCESS
         }
         Err(e) => {
-            eprintln!("{} failed to write {}: {}", "error:".red().bold(), filename, e);
+            eprintln!(
+                "{} failed to write {}: {}",
+                "error:".red().bold(),
+                filename,
+                e
+            );
             EXIT_ERROR
         }
     }
@@ -603,9 +611,7 @@ fn cmd_execute(file: &PathBuf, input: &str, json: bool, quiet: bool) -> i32 {
                         eprintln!(
                             "{} execution failed: {}",
                             "✗".red().bold(),
-                            result_json["error"]
-                                .as_str()
-                                .unwrap_or("unknown error")
+                            result_json["error"].as_str().unwrap_or("unknown error")
                         );
                     }
                     return EXIT_VALIDATION_FAILURE;

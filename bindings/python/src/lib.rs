@@ -3,8 +3,8 @@
 //! Thin wrapper around `icl-core` — ZERO logic here.
 //! All behavior comes from the canonical Rust implementation.
 
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 
 /// Parse ICL contract text and return a JSON string of the parsed Contract.
 ///
@@ -18,8 +18,8 @@ use pyo3::exceptions::PyValueError;
 ///     ValueError: If the contract text has syntax or semantic errors
 #[pyfunction]
 fn parse_contract(text: &str) -> PyResult<String> {
-    let contract = icl_core::parser::parse_contract(text)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let contract =
+        icl_core::parser::parse_contract(text).map_err(|e| PyValueError::new_err(e.to_string()))?;
 
     serde_json::to_string_pretty(&contract)
         .map_err(|e| PyValueError::new_err(format!("Serialization error: {}", e)))
@@ -42,8 +42,7 @@ fn parse_contract(text: &str) -> PyResult<String> {
 ///     ValueError: If the contract text cannot be parsed
 #[pyfunction]
 fn normalize(text: &str) -> PyResult<String> {
-    icl_core::normalizer::normalize(text)
-        .map_err(|e| PyValueError::new_err(e.to_string()))
+    icl_core::normalizer::normalize(text).map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 /// Verify an ICL contract for correctness.
@@ -69,8 +68,7 @@ fn normalize(text: &str) -> PyResult<String> {
 ///     ValueError: If the contract text cannot be parsed
 #[pyfunction]
 fn verify(text: &str) -> PyResult<String> {
-    let ast = icl_core::parser::parse(text)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let ast = icl_core::parser::parse(text).map_err(|e| PyValueError::new_err(e.to_string()))?;
 
     let result = icl_core::verifier::verify(&ast);
 
@@ -152,8 +150,7 @@ fn execute(text: &str, inputs: &str) -> PyResult<String> {
 ///     ValueError: If the contract text cannot be parsed
 #[pyfunction]
 fn semantic_hash(text: &str) -> PyResult<String> {
-    let ast = icl_core::parser::parse(text)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let ast = icl_core::parser::parse(text).map_err(|e| PyValueError::new_err(e.to_string()))?;
 
     let normalized = icl_core::normalizer::normalize_ast(ast);
     Ok(icl_core::normalizer::compute_semantic_hash(&normalized))

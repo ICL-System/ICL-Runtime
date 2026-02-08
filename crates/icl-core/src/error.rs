@@ -12,10 +12,7 @@ pub enum Error {
     ParseError(String),
 
     /// Type mismatch in contract
-    TypeError {
-        expected: String,
-        found: String,
-    },
+    TypeError { expected: String, found: String },
 
     /// Non-deterministic behavior detected
     DeterminismViolation(String),
@@ -44,7 +41,10 @@ impl fmt::Display for Error {
                 write!(f, "Type mismatch: expected {}, found {}", expected, found)
             }
             Error::DeterminismViolation(msg) => write!(f, "Determinism violation: {}", msg),
-            Error::ContractViolation { commitment, violation } => {
+            Error::ContractViolation {
+                commitment,
+                violation,
+            } => {
                 write!(f, "Contract violation - {}: {}", commitment, violation)
             }
             Error::ValidationError(msg) => write!(f, "Validation error: {}", msg),

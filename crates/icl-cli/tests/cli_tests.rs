@@ -23,12 +23,12 @@ fn icl_bin() -> PathBuf {
 
 fn fixture_valid(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join(format!("../../../ICL-Spec/conformance/valid/{}", name))
+        .join(format!("../../tests/fixtures/conformance/valid/{}", name))
 }
 
 fn fixture_invalid(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join(format!("../../../ICL-Spec/conformance/invalid/{}", name))
+        .join(format!("../../tests/fixtures/conformance/invalid/{}", name))
 }
 
 fn run_icl(args: &[&str]) -> std::process::Output {
@@ -89,11 +89,7 @@ fn test_validate_invalid_contract() {
 #[test]
 fn test_validate_nonexistent_file() {
     let output = run_icl(&["validate", "nonexistent.icl"]);
-    assert_eq!(
-        output.status.code(),
-        Some(2),
-        "missing file should exit 2"
-    );
+    assert_eq!(output.status.code(), Some(2), "missing file should exit 2");
 }
 
 #[test]
@@ -103,10 +99,12 @@ fn test_validate_json_output() {
         "--json",
         fixture_valid("minimal-contract.icl").to_str().unwrap(),
     ]);
-    assert!(output.status.success(), "valid contract --json should exit 0");
+    assert!(
+        output.status.success(),
+        "valid contract --json should exit 0"
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let json: serde_json::Value =
-        serde_json::from_str(&stdout).expect("should be valid JSON");
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
     assert_eq!(json["valid"], true);
     assert_eq!(json["errors"], 0);
 }
@@ -120,8 +118,7 @@ fn test_validate_json_invalid() {
     ]);
     assert_eq!(output.status.code(), Some(1));
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let json: serde_json::Value =
-        serde_json::from_str(&stdout).expect("should be valid JSON");
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
     assert_eq!(json["valid"], false);
 }
 
@@ -206,8 +203,7 @@ fn test_verify_json_output() {
     ]);
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let json: serde_json::Value =
-        serde_json::from_str(&stdout).expect("should be valid JSON");
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
     assert_eq!(json["verified"], true);
 }
 
@@ -253,7 +249,10 @@ fn test_fmt_outputs_to_stdout() {
     ]);
     assert!(output.status.success(), "fmt should exit 0");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Contract {"), "should output formatted contract");
+    assert!(
+        stdout.contains("Contract {"),
+        "should output formatted contract"
+    );
 }
 
 #[test]
@@ -261,8 +260,7 @@ fn test_fmt_write_flag() {
     // Copy fixture to temp, fmt --write, verify it changed
     let temp = std::env::temp_dir().join("icl_test_fmt_write.icl");
     let fixture = fixture_valid("minimal-contract.icl");
-    let source = std::fs::read_to_string(&fixture)
-        .expect("read fixture");
+    let source = std::fs::read_to_string(&fixture).expect("read fixture");
     std::fs::write(&temp, &source).expect("write temp");
 
     let output = run_icl(&["fmt", "--write", temp.to_str().unwrap()]);
@@ -278,7 +276,10 @@ fn test_fmt_write_flag() {
 
 #[test]
 fn test_diff_identical_files() {
-    let path = fixture_valid("minimal-contract.icl").to_str().unwrap().to_string();
+    let path = fixture_valid("minimal-contract.icl")
+        .to_str()
+        .unwrap()
+        .to_string();
     let output = run_icl(&["diff", &path, &path]);
     assert!(output.status.success(), "diff of same file should exit 0");
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -290,7 +291,10 @@ fn test_diff_identical_files() {
 
 #[test]
 fn test_diff_different_files() {
-    let a = fixture_valid("minimal-contract.icl").to_str().unwrap().to_string();
+    let a = fixture_valid("minimal-contract.icl")
+        .to_str()
+        .unwrap()
+        .to_string();
     let b = fixture_valid("all-primitive-types.icl")
         .to_str()
         .unwrap()
@@ -405,10 +409,9 @@ fn test_execute_json_output() {
     ]);
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let json: serde_json::Value =
-        serde_json::from_str(&stdout).expect("should be valid JSON");
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
     assert_eq!(json["success"], true);
-    assert!(json["provenance"]["entries"].as_array().unwrap().len() > 0);
+    assert!(!json["provenance"]["entries"].as_array().unwrap().is_empty());
 }
 
 #[test]
@@ -430,14 +433,14 @@ fn test_execute_unknown_operation() {
 
 #[test]
 fn test_all_valid_conformance_fixtures_validate() {
-    let valid_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../ICL-Spec/conformance/valid");
+    let valid_dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/conformance/valid");
 
     if valid_dir.exists() {
         for entry in std::fs::read_dir(&valid_dir).expect("read dir") {
             let entry = entry.expect("entry");
             let path = entry.path();
-            if path.extension().map_or(false, |e| e == "icl") {
+            if path.extension().is_some_and(|e| e == "icl") {
                 let output = run_icl(&["validate", path.to_str().unwrap()]);
                 assert!(
                     output.status.success(),
@@ -451,14 +454,14 @@ fn test_all_valid_conformance_fixtures_validate() {
 
 #[test]
 fn test_all_invalid_conformance_fixtures_fail() {
-    let invalid_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../ICL-Spec/conformance/invalid");
+    let invalid_dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/conformance/invalid");
 
     if invalid_dir.exists() {
         for entry in std::fs::read_dir(&invalid_dir).expect("read dir") {
             let entry = entry.expect("entry");
             let path = entry.path();
-            if path.extension().map_or(false, |e| e == "icl") {
+            if path.extension().is_some_and(|e| e == "icl") {
                 let output = run_icl(&["validate", path.to_str().unwrap()]);
                 assert!(
                     !output.status.success(),

@@ -13,12 +13,12 @@
 //! - **Pure**: no side effects, no I/O, no randomness
 //! - **Complete errors**: line:column for every error
 
-pub mod tokenizer;
 pub mod ast;
+pub mod tokenizer;
 
-use tokenizer::{Token, SpannedToken, Tokenizer, Span};
-use ast::*;
 use crate::{Error, Result};
+use ast::*;
+use tokenizer::{Span, SpannedToken, Token, Tokenizer};
 
 // ── Public API ─────────────────────────────────────────────
 
@@ -61,7 +61,10 @@ struct Parser {
 
 impl Parser {
     fn new(tokens: Vec<SpannedToken>) -> Self {
-        Parser { tokens, position: 0 }
+        Parser {
+            tokens,
+            position: 0,
+        }
     }
 
     // ── Token helpers ──────────────────────────────────
@@ -70,7 +73,11 @@ impl Parser {
         if self.position < self.tokens.len() {
             self.tokens[self.position].span.clone()
         } else {
-            Span { line: 0, column: 0, offset: 0 }
+            Span {
+                line: 0,
+                column: 0,
+                offset: 0,
+            }
         }
     }
 
@@ -245,7 +252,8 @@ impl Parser {
                 other => {
                     return Err(Error::ParseError(format!(
                         "Unknown field '{}' in Identity at {}",
-                        other, self.current_span()
+                        other,
+                        self.current_span()
                     )));
                 }
             }
@@ -255,16 +263,36 @@ impl Parser {
         self.expect(Token::RBrace)?;
 
         Ok(IdentityNode {
-            stable_id: stable_id.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'stable_id' in Identity at {}", span)))?,
-            version: version.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'version' in Identity at {}", span)))?,
-            created_timestamp: created_timestamp.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'created_timestamp' in Identity at {}", span)))?,
-            owner: owner.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'owner' in Identity at {}", span)))?,
-            semantic_hash: semantic_hash.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'semantic_hash' in Identity at {}", span)))?,
+            stable_id: stable_id.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'stable_id' in Identity at {}",
+                    span
+                ))
+            })?,
+            version: version.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'version' in Identity at {}",
+                    span
+                ))
+            })?,
+            created_timestamp: created_timestamp.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'created_timestamp' in Identity at {}",
+                    span
+                ))
+            })?,
+            owner: owner.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'owner' in Identity at {}",
+                    span
+                ))
+            })?,
+            semantic_hash: semantic_hash.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'semantic_hash' in Identity at {}",
+                    span
+                ))
+            })?,
             span,
         })
     }
@@ -305,7 +333,8 @@ impl Parser {
                 other => {
                     return Err(Error::ParseError(format!(
                         "Unknown field '{}' in PurposeStatement at {}",
-                        other, self.current_span()
+                        other,
+                        self.current_span()
                     )));
                 }
             }
@@ -315,12 +344,24 @@ impl Parser {
         self.expect(Token::RBrace)?;
 
         Ok(PurposeStatementNode {
-            narrative: narrative.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'narrative' in PurposeStatement at {}", span)))?,
-            intent_source: intent_source.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'intent_source' in PurposeStatement at {}", span)))?,
-            confidence_level: confidence_level.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'confidence_level' in PurposeStatement at {}", span)))?,
+            narrative: narrative.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'narrative' in PurposeStatement at {}",
+                    span
+                ))
+            })?,
+            intent_source: intent_source.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'intent_source' in PurposeStatement at {}",
+                    span
+                ))
+            })?,
+            confidence_level: confidence_level.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'confidence_level' in PurposeStatement at {}",
+                    span
+                ))
+            })?,
             span,
         })
     }
@@ -351,7 +392,8 @@ impl Parser {
                 other => {
                     return Err(Error::ParseError(format!(
                         "Unknown field '{}' in DataSemantics at {}",
-                        other, self.current_span()
+                        other,
+                        self.current_span()
                     )));
                 }
             }
@@ -361,10 +403,18 @@ impl Parser {
         self.expect(Token::RBrace)?;
 
         Ok(DataSemanticsNode {
-            state: state.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'state' in DataSemantics at {}", span)))?,
-            invariants: invariants.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'invariants' in DataSemantics at {}", span)))?,
+            state: state.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'state' in DataSemantics at {}",
+                    span
+                ))
+            })?,
+            invariants: invariants.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'invariants' in DataSemantics at {}",
+                    span
+                ))
+            })?,
             span,
         })
     }
@@ -417,19 +467,38 @@ impl Parser {
     fn parse_type_expression(&mut self) -> Result<TypeExpression> {
         let span = self.current_span();
         match self.peek().clone() {
-            Token::IntegerType => { self.advance(); Ok(TypeExpression::Primitive(PrimitiveType::Integer, span)) }
-            Token::FloatType => { self.advance(); Ok(TypeExpression::Primitive(PrimitiveType::Float, span)) }
-            Token::StringType => { self.advance(); Ok(TypeExpression::Primitive(PrimitiveType::String, span)) }
-            Token::BooleanType => { self.advance(); Ok(TypeExpression::Primitive(PrimitiveType::Boolean, span)) }
-            Token::Iso8601Type => { self.advance(); Ok(TypeExpression::Primitive(PrimitiveType::Iso8601, span)) }
-            Token::UuidType => { self.advance(); Ok(TypeExpression::Primitive(PrimitiveType::Uuid, span)) }
+            Token::IntegerType => {
+                self.advance();
+                Ok(TypeExpression::Primitive(PrimitiveType::Integer, span))
+            }
+            Token::FloatType => {
+                self.advance();
+                Ok(TypeExpression::Primitive(PrimitiveType::Float, span))
+            }
+            Token::StringType => {
+                self.advance();
+                Ok(TypeExpression::Primitive(PrimitiveType::String, span))
+            }
+            Token::BooleanType => {
+                self.advance();
+                Ok(TypeExpression::Primitive(PrimitiveType::Boolean, span))
+            }
+            Token::Iso8601Type => {
+                self.advance();
+                Ok(TypeExpression::Primitive(PrimitiveType::Iso8601, span))
+            }
+            Token::UuidType => {
+                self.advance();
+                Ok(TypeExpression::Primitive(PrimitiveType::Uuid, span))
+            }
             Token::ArrayType => self.parse_array_type(span),
             Token::MapType => self.parse_map_type(span),
             Token::ObjectType => self.parse_object_type(span),
             Token::EnumType => self.parse_enum_type(span),
             _ => Err(Error::ParseError(format!(
                 "Expected type expression, found {:?} at {}",
-                self.peek(), span
+                self.peek(),
+                span
             ))),
         }
     }
@@ -535,7 +604,8 @@ impl Parser {
             }
             _ => Err(Error::ParseError(format!(
                 "Expected literal value, found {:?} at {}",
-                self.peek(), span
+                self.peek(),
+                span
             ))),
         }
     }
@@ -607,7 +677,8 @@ impl Parser {
                 other => {
                     return Err(Error::ParseError(format!(
                         "Unknown field '{}' in operation at {}",
-                        other, self.current_span()
+                        other,
+                        self.current_span()
                     )));
                 }
             }
@@ -617,18 +688,42 @@ impl Parser {
         self.expect(Token::RBrace)?;
 
         Ok(OperationNode {
-            name: name.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'name' in operation at {}", span)))?,
-            precondition: precondition.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'precondition' in operation at {}", span)))?,
-            parameters: parameters.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'parameters' in operation at {}", span)))?,
-            postcondition: postcondition.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'postcondition' in operation at {}", span)))?,
-            side_effects: side_effects.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'side_effects' in operation at {}", span)))?,
-            idempotence: idempotence.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'idempotence' in operation at {}", span)))?,
+            name: name.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'name' in operation at {}",
+                    span
+                ))
+            })?,
+            precondition: precondition.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'precondition' in operation at {}",
+                    span
+                ))
+            })?,
+            parameters: parameters.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'parameters' in operation at {}",
+                    span
+                ))
+            })?,
+            postcondition: postcondition.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'postcondition' in operation at {}",
+                    span
+                ))
+            })?,
+            side_effects: side_effects.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'side_effects' in operation at {}",
+                    span
+                ))
+            })?,
+            idempotence: idempotence.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'idempotence' in operation at {}",
+                    span
+                ))
+            })?,
             span,
         })
     }
@@ -667,7 +762,8 @@ impl Parser {
                 other => {
                     return Err(Error::ParseError(format!(
                         "Unknown field '{}' in ExecutionConstraints at {}",
-                        other, self.current_span()
+                        other,
+                        self.current_span()
                     )));
                 }
             }
@@ -677,14 +773,30 @@ impl Parser {
         self.expect(Token::RBrace)?;
 
         Ok(ExecutionConstraintsNode {
-            trigger_types: trigger_types.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'trigger_types' in ExecutionConstraints at {}", span)))?,
-            resource_limits: resource_limits.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'resource_limits' in ExecutionConstraints at {}", span)))?,
-            external_permissions: external_permissions.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'external_permissions' in ExecutionConstraints at {}", span)))?,
-            sandbox_mode: sandbox_mode.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'sandbox_mode' in ExecutionConstraints at {}", span)))?,
+            trigger_types: trigger_types.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'trigger_types' in ExecutionConstraints at {}",
+                    span
+                ))
+            })?,
+            resource_limits: resource_limits.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'resource_limits' in ExecutionConstraints at {}",
+                    span
+                ))
+            })?,
+            external_permissions: external_permissions.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'external_permissions' in ExecutionConstraints at {}",
+                    span
+                ))
+            })?,
+            sandbox_mode: sandbox_mode.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'sandbox_mode' in ExecutionConstraints at {}",
+                    span
+                ))
+            })?,
             span,
         })
     }
@@ -715,7 +827,8 @@ impl Parser {
                 other => {
                     return Err(Error::ParseError(format!(
                         "Unknown field '{}' in resource_limits at {}",
-                        other, self.current_span()
+                        other,
+                        self.current_span()
                     )));
                 }
             }
@@ -725,12 +838,24 @@ impl Parser {
         self.expect(Token::RBrace)?;
 
         Ok(ResourceLimitsNode {
-            max_memory_bytes: max_memory_bytes.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'max_memory_bytes' in resource_limits at {}", span)))?,
-            computation_timeout_ms: computation_timeout_ms.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'computation_timeout_ms' in resource_limits at {}", span)))?,
-            max_state_size_bytes: max_state_size_bytes.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'max_state_size_bytes' in resource_limits at {}", span)))?,
+            max_memory_bytes: max_memory_bytes.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'max_memory_bytes' in resource_limits at {}",
+                    span
+                ))
+            })?,
+            computation_timeout_ms: computation_timeout_ms.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'computation_timeout_ms' in resource_limits at {}",
+                    span
+                ))
+            })?,
+            max_state_size_bytes: max_state_size_bytes.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'max_state_size_bytes' in resource_limits at {}",
+                    span
+                ))
+            })?,
             span,
         })
     }
@@ -764,7 +889,8 @@ impl Parser {
                 other => {
                     return Err(Error::ParseError(format!(
                         "Unknown field '{}' in HumanMachineContract at {}",
-                        other, self.current_span()
+                        other,
+                        self.current_span()
                     )));
                 }
             }
@@ -774,12 +900,24 @@ impl Parser {
         self.expect(Token::RBrace)?;
 
         Ok(HumanMachineContractNode {
-            system_commitments: system_commitments.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'system_commitments' in HumanMachineContract at {}", span)))?,
-            system_refusals: system_refusals.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'system_refusals' in HumanMachineContract at {}", span)))?,
-            user_obligations: user_obligations.ok_or_else(|| Error::ParseError(
-                format!("Missing required field 'user_obligations' in HumanMachineContract at {}", span)))?,
+            system_commitments: system_commitments.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'system_commitments' in HumanMachineContract at {}",
+                    span
+                ))
+            })?,
+            system_refusals: system_refusals.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'system_refusals' in HumanMachineContract at {}",
+                    span
+                ))
+            })?,
+            user_obligations: user_obligations.ok_or_else(|| {
+                Error::ParseError(format!(
+                    "Missing required field 'user_obligations' in HumanMachineContract at {}",
+                    span
+                ))
+            })?,
             span,
         })
     }
@@ -892,27 +1030,56 @@ pub fn lower_contract(node: &ContractNode) -> Result<crate::Contract> {
         data_semantics: lower_data_semantics(&node.data_semantics),
         behavioral_semantics: lower_behavioral_semantics(&node.behavioral_semantics),
         execution_constraints: crate::ExecutionConstraints {
-            trigger_types: node.execution_constraints.trigger_types
-                .iter().map(|s| s.value.clone()).collect(),
+            trigger_types: node
+                .execution_constraints
+                .trigger_types
+                .iter()
+                .map(|s| s.value.clone())
+                .collect(),
             resource_limits: crate::ResourceLimits {
-                max_memory_bytes: node.execution_constraints.resource_limits
-                    .max_memory_bytes.value as u64,
-                computation_timeout_ms: node.execution_constraints.resource_limits
-                    .computation_timeout_ms.value as u64,
-                max_state_size_bytes: node.execution_constraints.resource_limits
-                    .max_state_size_bytes.value as u64,
+                max_memory_bytes: node
+                    .execution_constraints
+                    .resource_limits
+                    .max_memory_bytes
+                    .value as u64,
+                computation_timeout_ms: node
+                    .execution_constraints
+                    .resource_limits
+                    .computation_timeout_ms
+                    .value as u64,
+                max_state_size_bytes: node
+                    .execution_constraints
+                    .resource_limits
+                    .max_state_size_bytes
+                    .value as u64,
             },
-            external_permissions: node.execution_constraints.external_permissions
-                .iter().map(|s| s.value.clone()).collect(),
+            external_permissions: node
+                .execution_constraints
+                .external_permissions
+                .iter()
+                .map(|s| s.value.clone())
+                .collect(),
             sandbox_mode: node.execution_constraints.sandbox_mode.value.clone(),
         },
         human_machine_contract: crate::HumanMachineContract {
-            system_commitments: node.human_machine_contract.system_commitments
-                .iter().map(|s| s.value.clone()).collect(),
-            system_refusals: node.human_machine_contract.system_refusals
-                .iter().map(|s| s.value.clone()).collect(),
-            user_obligations: node.human_machine_contract.user_obligations
-                .iter().map(|s| s.value.clone()).collect(),
+            system_commitments: node
+                .human_machine_contract
+                .system_commitments
+                .iter()
+                .map(|s| s.value.clone())
+                .collect(),
+            system_refusals: node
+                .human_machine_contract
+                .system_refusals
+                .iter()
+                .map(|s| s.value.clone())
+                .collect(),
+            user_obligations: node
+                .human_machine_contract
+                .user_obligations
+                .iter()
+                .map(|s| s.value.clone())
+                .collect(),
         },
     })
 }
@@ -952,24 +1119,28 @@ fn lower_literal(lit: &ast::LiteralValue) -> serde_json::Value {
 }
 
 fn lower_behavioral_semantics(node: &BehavioralSemanticsNode) -> crate::BehavioralSemantics {
-    let operations = node.operations.iter().map(|op| {
-        let mut params = serde_json::Map::new();
-        for p in &op.parameters {
-            params.insert(
-                p.name.value.clone(),
-                serde_json::Value::String(p.type_expr.to_string()),
-            );
-        }
+    let operations = node
+        .operations
+        .iter()
+        .map(|op| {
+            let mut params = serde_json::Map::new();
+            for p in &op.parameters {
+                params.insert(
+                    p.name.value.clone(),
+                    serde_json::Value::String(p.type_expr.to_string()),
+                );
+            }
 
-        crate::Operation {
-            name: op.name.value.clone(),
-            precondition: op.precondition.value.clone(),
-            parameters: serde_json::Value::Object(params),
-            postcondition: op.postcondition.value.clone(),
-            side_effects: op.side_effects.iter().map(|s| s.value.clone()).collect(),
-            idempotence: op.idempotence.value.clone(),
-        }
-    }).collect();
+            crate::Operation {
+                name: op.name.value.clone(),
+                precondition: op.precondition.value.clone(),
+                parameters: serde_json::Value::Object(params),
+                postcondition: op.postcondition.value.clone(),
+                side_effects: op.side_effects.iter().map(|s| s.value.clone()).collect(),
+                idempotence: op.idempotence.value.clone(),
+            }
+        })
+        .collect();
 
     crate::BehavioralSemantics { operations }
 }
@@ -1055,7 +1226,10 @@ mod tests {
         assert_eq!(contract.identity.stable_id, "ic-test-001");
         assert_eq!(contract.identity.version, 1);
         assert_eq!(contract.purpose_statement.confidence_level, 1.0);
-        assert_eq!(contract.execution_constraints.sandbox_mode, "full_isolation");
+        assert_eq!(
+            contract.execution_constraints.sandbox_mode,
+            "full_isolation"
+        );
     }
 
     // ── Type expressions ───────────────────────────────
@@ -1110,17 +1284,29 @@ mod tests {
 
         let state = &ast.data_semantics.state;
         assert_eq!(state[0].name.value, "count");
-        assert!(matches!(state[0].type_expr, TypeExpression::Primitive(PrimitiveType::Integer, _)));
+        assert!(matches!(
+            state[0].type_expr,
+            TypeExpression::Primitive(PrimitiveType::Integer, _)
+        ));
         assert!(state[0].default_value.is_some());
 
         assert_eq!(state[3].name.value, "active");
-        assert!(matches!(state[3].type_expr, TypeExpression::Primitive(PrimitiveType::Boolean, _)));
+        assert!(matches!(
+            state[3].type_expr,
+            TypeExpression::Primitive(PrimitiveType::Boolean, _)
+        ));
 
         assert_eq!(state[4].name.value, "created_at");
-        assert!(matches!(state[4].type_expr, TypeExpression::Primitive(PrimitiveType::Iso8601, _)));
+        assert!(matches!(
+            state[4].type_expr,
+            TypeExpression::Primitive(PrimitiveType::Iso8601, _)
+        ));
 
         assert_eq!(state[5].name.value, "user_id");
-        assert!(matches!(state[5].type_expr, TypeExpression::Primitive(PrimitiveType::Uuid, _)));
+        assert!(matches!(
+            state[5].type_expr,
+            TypeExpression::Primitive(PrimitiveType::Uuid, _)
+        ));
     }
 
     #[test]
@@ -1320,7 +1506,11 @@ mod tests {
 "#;
         let err = parse_err(input);
         // Should fail: missing closing brace means it expects PurposeStatement but hits Eof
-        assert!(err.contains("Expected") || err.contains("found"), "Error: {}", err);
+        assert!(
+            err.contains("Expected") || err.contains("found"),
+            "Error: {}",
+            err
+        );
     }
 
     #[test]
@@ -1374,14 +1564,18 @@ mod tests {
 }"#;
         let err = parse_err(input);
         // Parser expects PurposeStatement, finds Identifier("FakeSection")
-        assert!(err.contains("Expected") || err.contains("PurposeStatement"), "Error: {}", err);
+        assert!(
+            err.contains("Expected") || err.contains("PurposeStatement"),
+            "Error: {}",
+            err
+        );
     }
 
     // ── Conformance fixtures (file-based) ──────────────
 
     fn read_fixture(path: &str) -> String {
         let full = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../ICL-Spec")
+            .join("../../tests/fixtures")
             .join(path);
         fs::read_to_string(&full)
             .unwrap_or_else(|e| panic!("Failed to read {}: {}", full.display(), e))

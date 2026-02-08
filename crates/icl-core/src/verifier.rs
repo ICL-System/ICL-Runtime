@@ -38,7 +38,10 @@ impl VerificationResult {
 
     /// Returns true if no errors were found (warnings are OK)
     pub fn is_valid(&self) -> bool {
-        !self.diagnostics.iter().any(|d| d.severity == Severity::Error)
+        !self
+            .diagnostics
+            .iter()
+            .any(|d| d.severity == Severity::Error)
     }
 
     /// Returns only error-level diagnostics
@@ -98,7 +101,11 @@ impl std::fmt::Display for Diagnostic {
             Severity::Warning => "warning",
         };
         if let Some(ref span) = self.span {
-            write!(f, "{} [{}] at {}: {}", prefix, self.kind, span, self.message)
+            write!(
+                f,
+                "{} [{}] at {}: {}",
+                prefix, self.kind, span, self.message
+            )
         } else {
             write!(f, "{} [{}]: {}", prefix, self.kind, self.message)
         }
@@ -170,12 +177,7 @@ fn verify_types(ast: &ContractNode, result: &mut VerificationResult) {
     for field in &ast.data_semantics.state {
         verify_type_expression(&field.type_expr, result);
         if let Some(ref default) = field.default_value {
-            verify_default_matches_type(
-                &field.name.value,
-                &field.type_expr,
-                default,
-                result,
-            );
+            verify_default_matches_type(&field.name.value, &field.type_expr, default, result);
         }
     }
 
@@ -184,12 +186,7 @@ fn verify_types(ast: &ContractNode, result: &mut VerificationResult) {
         for param in &op.parameters {
             verify_type_expression(&param.type_expr, result);
             if let Some(ref default) = param.default_value {
-                verify_default_matches_type(
-                    &param.name.value,
-                    &param.type_expr,
-                    default,
-                    result,
-                );
+                verify_default_matches_type(&param.name.value, &param.type_expr, default, result);
             }
         }
     }
@@ -204,7 +201,10 @@ fn verify_identity_types(identity: &IdentityNode, result: &mut VerificationResul
     if identity.version.value < 0 {
         result.add_error(
             DiagnosticKind::TypeError,
-            format!("version must be non-negative, found {}", identity.version.value),
+            format!(
+                "version must be non-negative, found {}",
+                identity.version.value
+            ),
             Some(identity.version.span.clone()),
         );
     }
@@ -536,13 +536,46 @@ fn extract_identifiers(text: &str) -> Vec<String> {
 fn is_keyword(s: &str) -> bool {
     matches!(
         s,
-        "is" | "not" | "and" | "or" | "true" | "false" | "null" | "empty"
-            | "if" | "then" | "else" | "for" | "while" | "in"
-            | "gt" | "lt" | "eq" | "ne" | "ge" | "le"
-            | "the" | "a" | "an" | "of" | "to" | "at" | "by"
-            | "must" | "should" | "can" | "may" | "will"
-            | "exists" | "unique" | "valid" | "always" | "never"
-            | "updated" | "set" | "contains" | "matches"
+        "is" | "not"
+            | "and"
+            | "or"
+            | "true"
+            | "false"
+            | "null"
+            | "empty"
+            | "if"
+            | "then"
+            | "else"
+            | "for"
+            | "while"
+            | "in"
+            | "gt"
+            | "lt"
+            | "eq"
+            | "ne"
+            | "ge"
+            | "le"
+            | "the"
+            | "a"
+            | "an"
+            | "of"
+            | "to"
+            | "at"
+            | "by"
+            | "must"
+            | "should"
+            | "can"
+            | "may"
+            | "will"
+            | "exists"
+            | "unique"
+            | "valid"
+            | "always"
+            | "never"
+            | "updated"
+            | "set"
+            | "contains"
+            | "matches"
     )
 }
 
@@ -748,8 +781,11 @@ fn verify_operation_field_references(ast: &ContractNode, result: &mut Verificati
         for ident in &pre_idents {
             if looks_like_field_ref(ident) && !state_field_names.contains(ident.as_str()) {
                 // Only warn — preconditions may reference parameters too
-                let param_names: BTreeSet<&str> =
-                    op.parameters.iter().map(|p| p.name.value.as_str()).collect();
+                let param_names: BTreeSet<&str> = op
+                    .parameters
+                    .iter()
+                    .map(|p| p.name.value.as_str())
+                    .collect();
                 if !param_names.contains(ident.as_str()) {
                     result.add_warning(
                         DiagnosticKind::CoherenceError,
@@ -767,8 +803,11 @@ fn verify_operation_field_references(ast: &ContractNode, result: &mut Verificati
         let post_idents = extract_identifiers(&op.postcondition.value);
         for ident in &post_idents {
             if looks_like_field_ref(ident) && !state_field_names.contains(ident.as_str()) {
-                let param_names: BTreeSet<&str> =
-                    op.parameters.iter().map(|p| p.name.value.as_str()).collect();
+                let param_names: BTreeSet<&str> = op
+                    .parameters
+                    .iter()
+                    .map(|p| p.name.value.as_str())
+                    .collect();
                 if !param_names.contains(ident.as_str()) {
                     result.add_warning(
                         DiagnosticKind::CoherenceError,
@@ -788,7 +827,9 @@ fn verify_operation_field_references(ast: &ContractNode, result: &mut Verificati
 fn looks_like_field_ref(ident: &str) -> bool {
     // Must be lowercase with underscores, at least 2 chars
     ident.len() >= 2
-        && ident.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+        && ident
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
         && ident.contains('_')
 }
 
@@ -864,47 +905,71 @@ mod tests {
     #[test]
     fn test_valid_minimal_contract() {
         let result = parse_and_verify(include_str!(
-            "../../../../ICL-Spec/conformance/valid/minimal-contract.icl"
+            "../../../tests/fixtures/conformance/valid/minimal-contract.icl"
         ));
-        assert!(result.is_valid(), "minimal contract should verify: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "minimal contract should verify: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_valid_all_primitive_types() {
         let result = parse_and_verify(include_str!(
-            "../../../../ICL-Spec/conformance/valid/all-primitive-types.icl"
+            "../../../tests/fixtures/conformance/valid/all-primitive-types.icl"
         ));
-        assert!(result.is_valid(), "all-primitive-types should verify: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "all-primitive-types should verify: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_valid_composite_types() {
         let result = parse_and_verify(include_str!(
-            "../../../../ICL-Spec/conformance/valid/composite-types.icl"
+            "../../../tests/fixtures/conformance/valid/composite-types.icl"
         ));
-        assert!(result.is_valid(), "composite-types should verify: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "composite-types should verify: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_valid_multiple_operations() {
         let result = parse_and_verify(include_str!(
-            "../../../../ICL-Spec/conformance/valid/multiple-operations.icl"
+            "../../../tests/fixtures/conformance/valid/multiple-operations.icl"
         ));
-        assert!(result.is_valid(), "multiple-operations should verify: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "multiple-operations should verify: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_integer_type_valid_default() {
         let input = make_contract_with_state("count: Integer = 42");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "Integer default 42 should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "Integer default 42 should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_float_type_valid_default() {
         let input = make_contract_with_state("ratio: Float = 3.14");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "Float default 3.14 should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "Float default 3.14 should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
@@ -922,14 +987,22 @@ mod tests {
     fn test_string_type_valid_default() {
         let input = make_contract_with_state("label: String = \"hello\"");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "String default should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "String default should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_boolean_type_valid_default() {
         let input = make_contract_with_state("active: Boolean = true");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "Boolean default should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "Boolean default should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
@@ -938,7 +1011,10 @@ mod tests {
         let result = parse_and_verify(&input);
         assert!(!result.is_valid(), "String default for Integer should fail");
         assert!(
-            result.errors().iter().any(|d| d.kind == DiagnosticKind::TypeError),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.kind == DiagnosticKind::TypeError),
             "Should produce TypeError"
         );
     }
@@ -954,7 +1030,10 @@ mod tests {
     fn test_type_mismatch_boolean_for_integer() {
         let input = make_contract_with_state("count: Integer = true");
         let result = parse_and_verify(&input);
-        assert!(!result.is_valid(), "Boolean default for Integer should fail");
+        assert!(
+            !result.is_valid(),
+            "Boolean default for Integer should fail"
+        );
     }
 
     #[test]
@@ -966,9 +1045,14 @@ mod tests {
 
     #[test]
     fn test_enum_valid_default() {
-        let input = make_contract_with_state("status: Enum [\"active\", \"inactive\"] = \"active\"");
+        let input =
+            make_contract_with_state("status: Enum [\"active\", \"inactive\"] = \"active\"");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "Valid Enum default should pass: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "Valid Enum default should pass: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
@@ -981,23 +1065,26 @@ mod tests {
 
     #[test]
     fn test_enum_duplicate_variants() {
-        let input =
-            make_contract_with_state("status: Enum [\"active\", \"active\", \"inactive\"]");
+        let input = make_contract_with_state("status: Enum [\"active\", \"active\", \"inactive\"]");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.message.contains("duplicate Enum variant")),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("duplicate Enum variant")),
             "Should detect duplicate Enum variants"
         );
     }
 
     #[test]
     fn test_object_duplicate_fields() {
-        let input = make_contract_with_state(
-            "data: Object { name: String, name: Integer }",
-        );
+        let input = make_contract_with_state("data: Object { name: String, name: Integer }");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.message.contains("duplicate field name")),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("duplicate field name")),
             "Should detect duplicate Object fields"
         );
     }
@@ -1007,7 +1094,10 @@ mod tests {
         let input = make_contract_with_state("lookup: Map<Float, String>");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.message.contains("Float cannot be used as Map key")),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("Float cannot be used as Map key")),
             "Float Map keys should be rejected"
         );
     }
@@ -1016,28 +1106,43 @@ mod tests {
     fn test_map_string_key_valid() {
         let input = make_contract_with_state("lookup: Map<String, Integer>");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "String Map key should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "String Map key should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_array_type_valid() {
         let input = make_contract_with_state("items: Array<String>");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "Array<String> should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "Array<String> should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_nested_collection_types() {
         let input = make_contract_with_state("matrix: Array<Array<Integer>>");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "Nested Array should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "Nested Array should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_confidence_level_out_of_range_high() {
         // Parser already validates confidence_level in [0.0, 1.0]
         let input = make_contract_with_confidence("1.5");
-        assert!(parse(&input).is_err(), "confidence_level 1.5 should fail at parse");
+        assert!(
+            parse(&input).is_err(),
+            "confidence_level 1.5 should fail at parse"
+        );
     }
 
     #[test]
@@ -1048,7 +1153,10 @@ mod tests {
         let result = verify(&ast);
         assert!(!result.is_valid(), "confidence_level -0.1 should fail");
         assert!(
-            result.errors().iter().any(|d| d.message.contains("confidence_level")),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("confidence_level")),
             "Should mention confidence_level: {:?}",
             result.errors()
         );
@@ -1058,14 +1166,22 @@ mod tests {
     fn test_confidence_level_boundary_zero() {
         let input = make_contract_with_confidence("0.0");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "confidence_level 0.0 should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "confidence_level 0.0 should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
     fn test_confidence_level_boundary_one() {
         let input = make_contract_with_confidence("1.0");
         let result = parse_and_verify(&input);
-        assert!(result.is_valid(), "confidence_level 1.0 should be valid: {:?}", result.errors());
+        assert!(
+            result.is_valid(),
+            "confidence_level 1.0 should be valid: {:?}",
+            result.errors()
+        );
     }
 
     #[test]
@@ -1076,7 +1192,10 @@ mod tests {
         let result = verify(&ast);
         assert!(!result.is_valid(), "negative version should fail");
         assert!(
-            result.errors().iter().any(|d| d.message.contains("version")),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("version")),
             "Should mention version: {:?}",
             result.errors()
         );
@@ -1091,7 +1210,10 @@ mod tests {
         let result = verify(&ast);
         assert!(!result.is_valid(), "negative max_memory_bytes should fail");
         assert!(
-            result.errors().iter().any(|d| d.message.contains("max_memory_bytes")),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("max_memory_bytes")),
             "Should mention max_memory_bytes: {:?}",
             result.errors()
         );
@@ -1101,7 +1223,10 @@ mod tests {
     fn test_zero_timeout() {
         let input = make_contract_with_resource_limits(1048576, 0, 1048576);
         let result = parse_and_verify(&input);
-        assert!(!result.is_valid(), "zero computation_timeout_ms should fail");
+        assert!(
+            !result.is_valid(),
+            "zero computation_timeout_ms should fail"
+        );
     }
 
     #[test]
@@ -1136,14 +1261,14 @@ mod tests {
 
     #[test]
     fn test_invariant_references_valid_field() {
-        let input = make_contract_with_state_and_invariants(
-            "count: Integer = 0",
-            &["count >= 0"],
-        );
+        let input = make_contract_with_state_and_invariants("count: Integer = 0", &["count >= 0"]);
         let result = parse_and_verify(&input);
         // Should not warn about unreferenced fields
         assert!(
-            !result.warnings().iter().any(|d| d.kind == DiagnosticKind::InvariantError),
+            !result
+                .warnings()
+                .iter()
+                .any(|d| d.kind == DiagnosticKind::InvariantError),
             "Valid field reference should not warn: {:?}",
             result.warnings()
         );
@@ -1157,7 +1282,10 @@ mod tests {
         );
         let result = parse_and_verify(&input);
         assert!(
-            result.warnings().iter().any(|d| d.message.contains("duplicate invariant")),
+            result
+                .warnings()
+                .iter()
+                .any(|d| d.message.contains("duplicate invariant")),
             "Should warn about duplicate invariants"
         );
     }
@@ -1166,14 +1294,13 @@ mod tests {
 
     #[test]
     fn test_detect_randomness_in_precondition() {
-        let input = make_contract_with_operation(
-            "random_op",
-            "random() > 0.5",
-            "result set",
-        );
+        let input = make_contract_with_operation("random_op", "random() > 0.5", "result set");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.kind == DiagnosticKind::DeterminismViolation),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.kind == DiagnosticKind::DeterminismViolation),
             "Should detect randomness: {:?}",
             result.diagnostics
         );
@@ -1181,14 +1308,13 @@ mod tests {
 
     #[test]
     fn test_detect_system_time_in_postcondition() {
-        let input = make_contract_with_operation(
-            "time_op",
-            "true",
-            "timestamp = now()",
-        );
+        let input = make_contract_with_operation("time_op", "true", "timestamp = now()");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.kind == DiagnosticKind::DeterminismViolation),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.kind == DiagnosticKind::DeterminismViolation),
             "Should detect system time: {:?}",
             result.diagnostics
         );
@@ -1196,14 +1322,13 @@ mod tests {
 
     #[test]
     fn test_detect_external_io() {
-        let input = make_contract_with_operation(
-            "io_op",
-            "true",
-            "data = fetch(url)",
-        );
+        let input = make_contract_with_operation("io_op", "true", "data = fetch(url)");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.kind == DiagnosticKind::DeterminismViolation),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.kind == DiagnosticKind::DeterminismViolation),
             "Should detect external I/O: {:?}",
             result.diagnostics
         );
@@ -1211,14 +1336,13 @@ mod tests {
 
     #[test]
     fn test_detect_hashmap_usage() {
-        let input = make_contract_with_operation(
-            "hash_op",
-            "true",
-            "HashMap iteration order",
-        );
+        let input = make_contract_with_operation("hash_op", "true", "HashMap iteration order");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.kind == DiagnosticKind::DeterminismViolation),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.kind == DiagnosticKind::DeterminismViolation),
             "Should detect HashMap: {:?}",
             result.diagnostics
         );
@@ -1226,14 +1350,13 @@ mod tests {
 
     #[test]
     fn test_clean_operation_no_determinism_violation() {
-        let input = make_contract_with_operation(
-            "clean_op",
-            "count >= 0",
-            "count updated",
-        );
+        let input = make_contract_with_operation("clean_op", "count >= 0", "count updated");
         let result = parse_and_verify(&input);
         assert!(
-            !result.errors().iter().any(|d| d.kind == DiagnosticKind::DeterminismViolation),
+            !result
+                .errors()
+                .iter()
+                .any(|d| d.kind == DiagnosticKind::DeterminismViolation),
             "Clean operation should have no determinism violations: {:?}",
             result.errors()
         );
@@ -1246,7 +1369,10 @@ mod tests {
         let input = make_contract_with_two_ops("update_count", "update_count");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.message.contains("duplicate operation name")),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("duplicate operation name")),
             "Should detect duplicate operation names: {:?}",
             result.diagnostics
         );
@@ -1257,7 +1383,10 @@ mod tests {
         let input = make_contract_with_two_ops("create_item", "delete_item");
         let result = parse_and_verify(&input);
         assert!(
-            !result.errors().iter().any(|d| d.message.contains("duplicate operation name")),
+            !result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("duplicate operation name")),
             "Unique operation names should pass: {:?}",
             result.errors()
         );
@@ -1268,7 +1397,10 @@ mod tests {
         let input = make_contract_with_state("count: Integer, count: String");
         let result = parse_and_verify(&input);
         assert!(
-            result.errors().iter().any(|d| d.message.contains("duplicate state field")),
+            result
+                .errors()
+                .iter()
+                .any(|d| d.message.contains("duplicate state field")),
             "Should detect duplicate state fields: {:?}",
             result.diagnostics
         );
@@ -1279,7 +1411,10 @@ mod tests {
         let input = make_contract_with_sandbox_mode("super_isolated");
         let result = parse_and_verify(&input);
         assert!(
-            result.warnings().iter().any(|d| d.message.contains("sandbox_mode")),
+            result
+                .warnings()
+                .iter()
+                .any(|d| d.message.contains("sandbox_mode")),
             "Unknown sandbox_mode should warn: {:?}",
             result.diagnostics
         );
@@ -1291,7 +1426,10 @@ mod tests {
             let input = make_contract_with_sandbox_mode(mode);
             let result = parse_and_verify(&input);
             assert!(
-                !result.warnings().iter().any(|d| d.message.contains("sandbox_mode")),
+                !result
+                    .warnings()
+                    .iter()
+                    .any(|d| d.message.contains("sandbox_mode")),
                 "sandbox_mode '{}' should not warn: {:?}",
                 mode,
                 result.warnings()
@@ -1304,7 +1442,10 @@ mod tests {
         let input = make_contract_with_trigger_types(&["cron_job"]);
         let result = parse_and_verify(&input);
         assert!(
-            result.warnings().iter().any(|d| d.message.contains("trigger_type")),
+            result
+                .warnings()
+                .iter()
+                .any(|d| d.message.contains("trigger_type")),
             "Unknown trigger_type should warn: {:?}",
             result.diagnostics
         );
@@ -1315,7 +1456,10 @@ mod tests {
         let input = make_contract_with_trigger_types(&["manual", "time_based", "event_based"]);
         let result = parse_and_verify(&input);
         assert!(
-            !result.warnings().iter().any(|d| d.message.contains("trigger_type")),
+            !result
+                .warnings()
+                .iter()
+                .any(|d| d.message.contains("trigger_type")),
             "Known trigger_types should not warn: {:?}",
             result.warnings()
         );
@@ -1326,10 +1470,10 @@ mod tests {
     #[test]
     fn test_conformance_valid_all_pass_verification() {
         let fixtures = [
-            include_str!("../../../../ICL-Spec/conformance/valid/minimal-contract.icl"),
-            include_str!("../../../../ICL-Spec/conformance/valid/all-primitive-types.icl"),
-            include_str!("../../../../ICL-Spec/conformance/valid/composite-types.icl"),
-            include_str!("../../../../ICL-Spec/conformance/valid/multiple-operations.icl"),
+            include_str!("../../../tests/fixtures/conformance/valid/minimal-contract.icl"),
+            include_str!("../../../tests/fixtures/conformance/valid/all-primitive-types.icl"),
+            include_str!("../../../tests/fixtures/conformance/valid/composite-types.icl"),
+            include_str!("../../../tests/fixtures/conformance/valid/multiple-operations.icl"),
         ];
         for (i, fixture) in fixtures.iter().enumerate() {
             let result = parse_and_verify(fixture);
@@ -1346,7 +1490,8 @@ mod tests {
 
     #[test]
     fn test_verification_determinism_100_iterations() {
-        let input = include_str!("../../../../ICL-Spec/conformance/valid/all-primitive-types.icl");
+        let input =
+            include_str!("../../../tests/fixtures/conformance/valid/all-primitive-types.icl");
         let ast = parse(input).expect("should parse");
 
         let first = verify(&ast);
@@ -1368,7 +1513,12 @@ mod tests {
                 i
             );
             // Compare each diagnostic message
-            for (j, (a, b)) in first.diagnostics.iter().zip(result.diagnostics.iter()).enumerate() {
+            for (j, (a, b)) in first
+                .diagnostics
+                .iter()
+                .zip(result.diagnostics.iter())
+                .enumerate()
+            {
                 assert_eq!(
                     a.message, b.message,
                     "Determinism failure at iteration {}, diagnostic {}: messages differ",
@@ -1385,7 +1535,8 @@ mod tests {
 
     #[test]
     fn test_verification_determinism_complex_contract() {
-        let input = include_str!("../../../../ICL-Spec/conformance/valid/multiple-operations.icl");
+        let input =
+            include_str!("../../../tests/fixtures/conformance/valid/multiple-operations.icl");
         let ast = parse(input).expect("should parse");
 
         let first = verify(&ast);
@@ -1881,7 +2032,11 @@ mod tests {
 
     /// Create a dummy span for AST construction in tests
     fn dummy_span() -> Span {
-        Span { line: 0, column: 0, offset: 0 }
+        Span {
+            line: 0,
+            column: 0,
+            offset: 0,
+        }
     }
 
     /// Create a minimal valid AST for direct manipulation in tests
