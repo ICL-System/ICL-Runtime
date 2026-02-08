@@ -1,0 +1,17 @@
+[package]
+name = "icl-python"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Python bindings for ICL (Intent Contract Language) runtime"
+
+[lib]
+name = "icl"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["extension-module"] }
+icl-core = { path = "../../crates/icl-core" }
+serde_json = "1.0"

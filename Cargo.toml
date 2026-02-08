@@ -2,6 +2,7 @@
 members = [
     "crates/icl-core",
     "crates/icl-cli",
+    "bindings/python",
 ]
 resolver = "2"
 

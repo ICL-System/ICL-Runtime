@@ -229,15 +229,15 @@
 
 ### 6.1 — Python Binding (PyO3 + maturin)
 
-- [ ] Set up `bindings/python/` with PyO3
-- [ ] Create `pyproject.toml` with maturin build backend
-- [ ] Expose `parse_contract()` to Python
-- [ ] Expose `normalize()` to Python
-- [ ] Expose `verify()` to Python
-- [ ] Expose `execute()` to Python
-- [ ] Python type stubs (`.pyi` files)
-- [ ] Test: Python produces identical results to Rust
-- [ ] Test: `pip install` from local build works
+- [x] Set up `bindings/python/` with PyO3
+- [x] Create `pyproject.toml` with maturin build backend
+- [x] Expose `parse_contract()` to Python
+- [x] Expose `normalize()` to Python
+- [x] Expose `verify()` to Python
+- [x] Expose `execute()` to Python
+- [x] Python type stubs (`.pyi` files)
+- [x] Test: Python produces identical results to Rust
+- [x] Test: `pip install` from local build works
 - [ ] Publish to PyPI (test.pypi.org first)
 
 ### 6.2 — JavaScript Binding (wasm-pack)
