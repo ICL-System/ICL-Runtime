@@ -1,7 +1,7 @@
 # ICL Project — Roadmap & Progress Tracker
 
 **Started:** 2026-02-08
-**Status:** Phase 9 — Conformance Suite
+**Status:** Phase 9 — Conformance Suite ✅
 
 > Check boxes as each step is completed. Each phase must be finished before starting the next.
 
@@ -305,13 +305,13 @@
 
 ## Phase 9: Conformance Suite
 
-- [ ] 50+ valid contract test fixtures
-- [ ] 50+ invalid contract test fixtures (each targets specific error)
-- [ ] 20+ normalization input→expected pairs
-- [ ] Determinism proof suite (contracts run 100+ times)
-- [ ] Cross-implementation test runner script
-- [ ] Document how alternative implementations run conformance tests
-- [ ] Version the conformance suite (matching spec version)
+- [x] 50+ valid contract test fixtures
+- [x] 50+ invalid contract test fixtures (each targets specific error)
+- [x] 20+ normalization input→expected pairs
+- [x] Determinism proof suite (contracts run 100+ times)
+- [x] Cross-implementation test runner script
+- [x] Document how alternative implementations run conformance tests
+- [x] Version the conformance suite (matching spec version)
 
 ---
 
