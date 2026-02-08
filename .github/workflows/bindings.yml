@@ -1,0 +1,86 @@
+name: Bindings
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ── Python (PyO3 + maturin) ─────────────────────────────
+  python:
+    name: Python Binding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install maturin
+        run: pip install maturin pytest
+      - name: Build wheel
+        run: |
+          cd bindings/python
+          maturin build --release
+      - name: Install and test
+        run: |
+          pip install target/wheels/*.whl
+          cd bindings/python
+          pytest tests/ -v
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-wheel
+          path: target/wheels/*.whl
+
+  # ── JavaScript (wasm-pack) ──────────────────────────────
+  javascript:
+    name: JavaScript Binding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Build WASM package
+        run: |
+          cd bindings/javascript
+          wasm-pack build --target nodejs
+      - name: Run tests
+        run: |
+          cd bindings/javascript
+          node tests/test_icl.mjs
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: bindings/javascript/pkg/
+
+  # ── Go (cgo + shared library) ───────────────────────────
+  go:
+    name: Go Binding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - name: Build shared library
+        run: |
+          cd bindings/go/ffi
+          cargo build --release
+      - name: Run Go tests
+        run: |
+          cd bindings/go
+          LD_LIBRARY_PATH=../../target/release go test -v

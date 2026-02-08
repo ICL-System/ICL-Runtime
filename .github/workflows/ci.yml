@@ -1,0 +1,183 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ── Format check ──────────────────────────────────────────
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all --check
+
+  # ── Clippy lint ───────────────────────────────────────────
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  # ── Build + Test (cross-platform) ────────────────────────
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.os }}
+      - name: Build workspace
+        run: cargo build --workspace
+      - name: Run tests
+        run: cargo test --workspace
+
+  # ── Conformance tests against ICL-Spec ───────────────────
+  conformance:
+    name: Conformance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ICL-System/ICL-Spec
+          path: ICL-Spec
+          token: ${{ secrets.SPEC_REPO_TOKEN }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build CLI
+        run: cargo build --release -p icl-cli
+      - name: Test valid contracts parse
+        run: |
+          PASS=0; FAIL=0
+          for f in ICL-Spec/conformance/valid/*.icl; do
+            if ./target/release/icl-cli validate "$f" --quiet 2>/dev/null; then
+              PASS=$((PASS + 1))
+            else
+              echo "FAIL: $f"
+              FAIL=$((FAIL + 1))
+            fi
+          done
+          echo "Valid contracts: $PASS passed, $FAIL failed"
+          [ "$FAIL" -eq 0 ]
+      - name: Test invalid contracts are rejected
+        run: |
+          PASS=0; FAIL=0
+          for f in ICL-Spec/conformance/invalid/*.icl; do
+            if ./target/release/icl-cli validate "$f" --quiet 2>/dev/null; then
+              echo "FAIL (should reject): $f"
+              FAIL=$((FAIL + 1))
+            else
+              PASS=$((PASS + 1))
+            fi
+          done
+          echo "Invalid contracts: $PASS correctly rejected, $FAIL false accepts"
+          [ "$FAIL" -eq 0 ]
+
+  # ── Determinism tests (100 iterations) ───────────────────
+  determinism:
+    name: Determinism
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run determinism tests
+        run: cargo test --workspace -- determinism
+      - name: CLI determinism (100 iterations)
+        run: |
+          cargo build --release -p icl-cli
+
+          # Create a test contract
+          cat > /tmp/test-contract.icl << 'EOF'
+          Contract {
+            Identity {
+              stable_id: "ic-ci-test-001",
+              version: 1,
+              created_timestamp: 2026-02-08T00:00:00Z,
+              owner: "ci",
+              semantic_hash: "placeholder"
+            }
+            PurposeStatement {
+              narrative: "CI determinism test",
+              intent_source: "automated",
+              confidence_level: 1.0
+            }
+            DataSemantics {
+              state: {
+                message: String = "hello"
+              },
+              invariants: [
+                "message is not empty"
+              ]
+            }
+            BehavioralSemantics {
+              operations: [{
+                name: "echo",
+                precondition: "true",
+                parameters: { message: String },
+                postcondition: "message == new_message",
+                side_effects: [],
+                idempotence: "idempotent"
+              }]
+            }
+            ExecutionConstraints {
+              trigger_types: ["manual"],
+              resource_limits: {
+                max_memory_bytes: 1048576,
+                computation_timeout_ms: 100,
+                max_state_size_bytes: 1048576
+              },
+              external_permissions: [],
+              sandbox_mode: "full_isolation"
+            }
+            HumanMachineContract {
+              system_commitments: ["Echo messages"],
+              system_refusals: ["None"],
+              user_obligations: ["Provide message"]
+            }
+          }
+          EOF
+
+          # Run normalize 100 times, all must match
+          REFERENCE=$(./target/release/icl-cli normalize /tmp/test-contract.icl)
+          for i in $(seq 1 100); do
+            OUTPUT=$(./target/release/icl-cli normalize /tmp/test-contract.icl)
+            if [ "$OUTPUT" != "$REFERENCE" ]; then
+              echo "DETERMINISM FAILURE at iteration $i"
+              diff <(echo "$REFERENCE") <(echo "$OUTPUT")
+              exit 1
+            fi
+          done
+          echo "✓ 100 normalize iterations: identical output"
+
+          # Run hash 100 times, all must match
+          REF_HASH=$(./target/release/icl-cli hash /tmp/test-contract.icl)
+          for i in $(seq 1 100); do
+            HASH=$(./target/release/icl-cli hash /tmp/test-contract.icl)
+            if [ "$HASH" != "$REF_HASH" ]; then
+              echo "HASH DETERMINISM FAILURE at iteration $i"
+              exit 1
+            fi
+          done
+          echo "✓ 100 hash iterations: identical output"
