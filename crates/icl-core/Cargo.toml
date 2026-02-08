@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
+readme = "README.md"
 description = "Intent Contract Language (ICL) - Canonical runtime core library"
 
 [dependencies]
