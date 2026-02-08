@@ -26,7 +26,7 @@ fn verify_contract(c: &Contract) -> Result<()> {
 }
 ```
 
-**Rule:** Randomness only in parsing layer. Verification and execution must be deterministic.
+**Rule:** No randomness anywhere in the codebase. All layers must be deterministic.
 
 ### 2. Single Source of Truth
 
@@ -113,6 +113,10 @@ ICL-Runtime/
 │   │       └── executor.rs     # Sandboxed execution engine
 │   └── icl-cli/            # Binary crate (CLI interface)
 │       └── src/main.rs
+├── bindings/
+│   ├── python/             # PyO3 binding (pip: icl-runtime)
+│   ├── javascript/         # WASM binding (npm: icl-runtime)
+│   └── go/                 # cgo binding
 ├── tests/
 │   ├── integration/
 │   ├── conformance/
@@ -176,23 +180,25 @@ Test against real contracts:
 
 Format:
 ```
-[COMPONENT] Brief description
+type(scope): Brief description
 
-Longer explanation:
 - What changed
 - Why it changed
 - How it maintains Core integrity
 - Determinism proof (if relevant)
 ```
 
+Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`
+Scopes: `parser`, `normalizer`, `verifier`, `executor`, `cli`, `spec`, `docs`, `ci`
+
 Example:
 ```
-[verifier] Add type-checking for union types
+feat(verifier): Add type-checking for union types
 
-Changed: Type checker now validates Union types correctly
-Why: Core ICL spec Section 2.3 requires union support
-How: Added recursive type checking with cycle detection
-Determinism: Type checker output is deterministic (proof: test_determinism_100_iterations)
+- Type checker now validates Union types correctly
+- Core ICL spec Section 2.3 requires union support
+- Added recursive type checking with cycle detection
+- Determinism: 100-iteration proof passing
 ```
 
 ## Code Review Checklist

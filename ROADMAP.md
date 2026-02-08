@@ -12,7 +12,7 @@
 ### 0.1 — Create ICL-Spec Repository
 
 - [x] Create `ICL-System/ICL-Spec` repo on GitHub
-- [x] Add LICENSE (MIT OR Apache-2.0)
+- [x] Add LICENSE (MIT)
 - [x] Create `spec/` directory
 - [x] Move `CORE-SPECIFICATION.md` from ICL-Runtime → ICL-Spec/spec/
 - [x] Create `grammar/icl.bnf` — extract formal BNF from spec into standalone file
@@ -191,14 +191,14 @@
 ## Phase 4: CLI
 
 - [x] Set up `clap` in `icl-cli`
-- [x] Implement `icl validate <file.icl>`
-- [x] Implement `icl normalize <file.icl>`
-- [x] Implement `icl verify <file.icl>`
-- [x] Implement `icl fmt <file.icl>`
-- [x] Implement `icl hash <file.icl>`
-- [x] Implement `icl diff <a.icl> <b.icl>`
-- [x] Implement `icl init` (scaffold new contract)
-- [x] Implement `icl version`
+- [x] Implement `icl-cli validate <file.icl>`
+- [x] Implement `icl-cli normalize <file.icl>`
+- [x] Implement `icl-cli verify <file.icl>`
+- [x] Implement `icl-cli fmt <file.icl>`
+- [x] Implement `icl-cli hash <file.icl>`
+- [x] Implement `icl-cli diff <a.icl> <b.icl>`
+- [x] Implement `icl-cli init` (scaffold new contract)
+- [x] Implement `icl-cli version`
 - [x] Colored output (errors in red, success in green)
 - [x] Exit codes (0 = success, 1 = validation failure, 2 = error)
 - [x] `--json` flag for machine-readable output
