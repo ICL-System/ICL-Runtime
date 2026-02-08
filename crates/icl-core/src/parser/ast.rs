@@ -100,6 +100,7 @@ pub enum LiteralValue {
     Integer(i64, Span),
     Float(f64, Span),
     Boolean(bool, Span),
+    Array(Vec<LiteralValue>, Span),
 }
 
 // ── Behavioral Semantics (§1.5) ───────────────────────────
@@ -238,8 +239,16 @@ impl std::fmt::Display for LiteralValue {
             LiteralValue::String(s, _) => write!(f, "\"{}\"", s),
             LiteralValue::Integer(n, _) => write!(f, "{}", n),
             LiteralValue::Float(n, _) => write!(f, "{}", n),
-            LiteralValue::Boolean(b, _) => write!(f, "{}", b),
-        }
+            LiteralValue::Boolean(b, _) => write!(f, "{}", b),            LiteralValue::Array(items, _) => {
+                write!(f, "[")?;
+                for (i, item) in items.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", item)?;
+                }
+                write!(f, "]")
+            }        }
     }
 }
 
@@ -270,6 +279,7 @@ impl LiteralValue {
             LiteralValue::Integer(_, s) => s,
             LiteralValue::Float(_, s) => s,
             LiteralValue::Boolean(_, s) => s,
+            LiteralValue::Array(_, s) => s,
         }
     }
 }
