@@ -29,6 +29,7 @@ pub fn execute_contract(contract: &Contract, inputs: &str) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]

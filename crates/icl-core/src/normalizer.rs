@@ -447,7 +447,7 @@ fn dummy_span() -> Span {
 /// The hash is computed over the canonical serialization
 /// with the semantic_hash field set to a placeholder value.
 /// This ensures the hash doesn't include itself.
-fn compute_semantic_hash(ast: &ContractNode) -> String {
+pub fn compute_semantic_hash(ast: &ContractNode) -> String {
     // Clone AST with a placeholder hash
     let mut hashable = ast.clone();
     hashable.identity.semantic_hash = SpannedValue::new(

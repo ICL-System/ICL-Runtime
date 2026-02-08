@@ -101,6 +101,7 @@ pub struct HumanMachineContract {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]
