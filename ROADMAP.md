@@ -1,7 +1,7 @@
 # ICL Project — Roadmap & Progress Tracker
 
 **Started:** 2026-02-08
-**Status:** Phase 7 — Documentation Site
+**Status:** Phase 8 — CI/CD
 
 > Check boxes as each step is completed. Each phase must be finished before starting the next.
 
@@ -238,7 +238,7 @@
 - [x] Python type stubs (`.pyi` files)
 - [x] Test: Python produces identical results to Rust
 - [x] Test: `pip install` from local build works
-- [ ] Publish to PyPI (test.pypi.org first)
+- [x] Publish to PyPI (test.pypi.org first)
 
 ### 6.2 — JavaScript Binding (wasm-pack)
 
@@ -251,7 +251,7 @@
 - [x] TypeScript type definitions (`.d.ts` files)
 - [x] Test: JS produces identical results to Rust
 - [x] Test: `npm install` from local build works
-- [ ] Publish to npm (--dry-run first)
+- [x] Publish to npm (--dry-run first)
 
 ### 6.3 — Go Binding (cgo)
 
@@ -269,18 +269,18 @@
 
 ## Phase 7: Documentation Site
 
-- [ ] Configure mdBook theme and styling
-- [ ] Write comprehensive introduction page
-- [ ] Write getting-started tutorial (step by step with working examples)
-- [ ] Write contract authoring guide
-- [ ] Write CLI reference (all commands documented)
-- [ ] Write API reference (all public functions documented)
-- [ ] Write architecture explanation
-- [ ] Write testing guide
-- [ ] Add code examples that actually run
-- [ ] Set up GitHub Pages deployment
+- [x] Configure mdBook theme and styling
+- [x] Write comprehensive introduction page
+- [x] Write getting-started tutorial (step by step with working examples)
+- [x] Write contract authoring guide
+- [x] Write CLI reference (all commands documented)
+- [x] Write API reference (all public functions documented)
+- [x] Write architecture explanation
+- [x] Write testing guide
+- [x] Add code examples that actually run
+- [x] Set up GitHub Pages deployment
 - [ ] Configure custom domain (`iclstandard.org` when ready)
-- [ ] Add search functionality
+- [x] Add search functionality
 
 ---
 
