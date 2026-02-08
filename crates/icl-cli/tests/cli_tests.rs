@@ -47,7 +47,10 @@ fn test_version_command() {
     assert!(output.status.success(), "version should exit 0");
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("icl"), "should contain 'icl'");
-    assert!(stdout.contains(env!("CARGO_PKG_VERSION")), "should contain version");
+    assert!(
+        stdout.contains(env!("CARGO_PKG_VERSION")),
+        "should contain version"
+    );
 }
 
 #[test]
@@ -55,7 +58,10 @@ fn test_version_flag() {
     let output = run_icl(&["--version"]);
     assert!(output.status.success(), "--version should exit 0");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains(env!("CARGO_PKG_VERSION")), "should contain version");
+    assert!(
+        stdout.contains(env!("CARGO_PKG_VERSION")),
+        "should contain version"
+    );
 }
 
 // ── Validate ──────────────────────────────────────────────
