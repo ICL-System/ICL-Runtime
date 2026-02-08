@@ -363,20 +363,66 @@ fn test_init_default_name() {
     let _ = std::fs::remove_dir_all(&temp_dir);
 }
 
-// ── Execute (stub) ────────────────────────────────────────
+// ── Execute ───────────────────────────────────────────────
 
 #[test]
-fn test_execute_not_implemented() {
+fn test_execute_no_operations() {
     let output = run_icl(&[
         "execute",
         fixture_valid("minimal-contract.icl").to_str().unwrap(),
         "--input",
-        "{}",
+        "[]",
+    ]);
+    assert!(
+        output.status.success(),
+        "execute with empty operations should exit 0"
+    );
+}
+
+#[test]
+fn test_execute_with_operation() {
+    let output = run_icl(&[
+        "execute",
+        fixture_valid("all-primitive-types.icl").to_str().unwrap(),
+        "--input",
+        r#"{"operation": "update_count", "inputs": {"new_count": 42, "label": "test"}}"#,
+    ]);
+    assert!(
+        output.status.success(),
+        "execute with valid operation should exit 0: stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn test_execute_json_output() {
+    let output = run_icl(&[
+        "execute",
+        fixture_valid("all-primitive-types.icl").to_str().unwrap(),
+        "--input",
+        r#"{"operation": "update_count", "inputs": {"new_count": 10, "label": "test"}}"#,
+        "--json",
+    ]);
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let json: serde_json::Value =
+        serde_json::from_str(&stdout).expect("should be valid JSON");
+    assert_eq!(json["success"], true);
+    assert!(json["provenance"]["entries"].as_array().unwrap().len() > 0);
+}
+
+#[test]
+fn test_execute_unknown_operation() {
+    let output = run_icl(&[
+        "execute",
+        fixture_valid("minimal-contract.icl").to_str().unwrap(),
+        "--input",
+        r#"{"operation": "nonexistent", "inputs": {}}"#,
     ]);
     assert_eq!(
         output.status.code(),
-        Some(2),
-        "execute should exit 2 (not implemented)"
+        Some(1),
+        "unknown operation should exit 1 (execution failure)"
     );
 }
 

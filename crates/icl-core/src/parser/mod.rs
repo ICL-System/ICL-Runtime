@@ -873,7 +873,9 @@ impl Parser {
 
 // ── Lowering: AST → semantic Contract ──────────────────────
 
-fn lower_contract(node: &ContractNode) -> Result<crate::Contract> {
+/// Convert a parsed AST into a runtime Contract struct.
+/// This is the bridge between the parser output and the executor input.
+pub fn lower_contract(node: &ContractNode) -> Result<crate::Contract> {
     Ok(crate::Contract {
         identity: crate::Identity {
             stable_id: node.identity.stable_id.value.clone(),
@@ -918,12 +920,34 @@ fn lower_contract(node: &ContractNode) -> Result<crate::Contract> {
 fn lower_data_semantics(node: &DataSemanticsNode) -> crate::DataSemantics {
     let mut state = serde_json::Map::new();
     for field in &node.state {
-        let type_str = serde_json::Value::String(field.type_expr.to_string());
-        state.insert(field.name.value.clone(), type_str);
+        let type_str = field.type_expr.to_string();
+        let value = if let Some(ref default) = field.default_value {
+            // Store as {"type": "...", "default": value} to preserve defaults
+            let default_json = lower_literal(default);
+            serde_json::json!({
+                "type": type_str,
+                "default": default_json
+            })
+        } else {
+            serde_json::Value::String(type_str)
+        };
+        state.insert(field.name.value.clone(), value);
     }
     crate::DataSemantics {
         state: serde_json::Value::Object(state),
         invariants: node.invariants.iter().map(|s| s.value.clone()).collect(),
+    }
+}
+
+fn lower_literal(lit: &ast::LiteralValue) -> serde_json::Value {
+    match lit {
+        ast::LiteralValue::String(s, _) => serde_json::Value::String(s.clone()),
+        ast::LiteralValue::Integer(i, _) => serde_json::json!(*i),
+        ast::LiteralValue::Float(f, _) => serde_json::json!(*f),
+        ast::LiteralValue::Boolean(b, _) => serde_json::Value::Bool(*b),
+        ast::LiteralValue::Array(arr, _) => {
+            serde_json::Value::Array(arr.iter().map(lower_literal).collect())
+        }
     }
 }
 

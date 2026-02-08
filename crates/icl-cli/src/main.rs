@@ -516,14 +516,116 @@ fn cmd_init(name: Option<&str>, quiet: bool) -> i32 {
     }
 }
 
-/// `icl execute <file>` — execute a contract (Phase 5 — not yet implemented)
-fn cmd_execute(file: &PathBuf, _input: &str, _json: bool, _quiet: bool) -> i32 {
-    eprintln!(
-        "{} execute is not yet implemented (Phase 5)",
-        "error:".red().bold()
-    );
-    eprintln!("  file: {}", file.display());
-    EXIT_ERROR
+/// `icl execute <file>` — execute a contract with JSON inputs
+fn cmd_execute(file: &PathBuf, input: &str, json: bool, quiet: bool) -> i32 {
+    let source = match read_icl_file(file) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+
+    // Parse
+    let contract = match icl_core::parser::parse(&source) {
+        Ok(ast) => ast,
+        Err(e) => {
+            if !quiet {
+                eprintln!(
+                    "{} {} has parse errors: {}",
+                    "error:".red().bold(),
+                    file.display(),
+                    e
+                );
+            }
+            return EXIT_ERROR;
+        }
+    };
+
+    // Verify first
+    let verification = icl_core::verifier::verify(&contract);
+    if !verification.is_valid() {
+        if !quiet {
+            eprintln!(
+                "{} {} failed verification:",
+                "error:".red().bold(),
+                file.display()
+            );
+            for e in &verification.errors() {
+                eprintln!("  {}", e.message);
+            }
+        }
+        return EXIT_VALIDATION_FAILURE;
+    }
+
+    // Convert AST to runtime Contract
+    let runtime_contract = match icl_core::parser::lower_contract(&contract) {
+        Ok(c) => c,
+        Err(e) => {
+            if !quiet {
+                eprintln!("{} {}", "error:".red().bold(), e);
+            }
+            return EXIT_ERROR;
+        }
+    };
+
+    // Execute
+    match icl_core::executor::execute_contract(&runtime_contract, input) {
+        Ok(result) => {
+            if json {
+                println!("{}", result);
+            } else {
+                // Pretty-print a summary
+                let result_json: serde_json::Value =
+                    serde_json::from_str(&result).unwrap_or_default();
+                let success = result_json["success"].as_bool().unwrap_or(false);
+                if success {
+                    if !quiet {
+                        println!(
+                            "{} {} executed successfully",
+                            "✓".green().bold(),
+                            file.display()
+                        );
+                    }
+                    let ops = result_json["operations"]
+                        .as_array()
+                        .map(|a| a.len())
+                        .unwrap_or(0);
+                    if !quiet {
+                        println!("  Operations: {}", ops);
+                        println!(
+                            "  Provenance entries: {}",
+                            result_json["provenance"]["entries"]
+                                .as_array()
+                                .map(|a| a.len())
+                                .unwrap_or(0)
+                        );
+                    }
+                } else {
+                    if !quiet {
+                        eprintln!(
+                            "{} execution failed: {}",
+                            "✗".red().bold(),
+                            result_json["error"]
+                                .as_str()
+                                .unwrap_or("unknown error")
+                        );
+                    }
+                    return EXIT_VALIDATION_FAILURE;
+                }
+            }
+            EXIT_SUCCESS
+        }
+        Err(e) => {
+            if json {
+                let err_json = serde_json::json!({
+                    "success": false,
+                    "error": e.to_string()
+                });
+                println!("{}", serde_json::to_string_pretty(&err_json).unwrap());
+            } else if !quiet {
+                eprintln!("{} {}", "error:".red().bold(), e);
+            }
+            EXIT_ERROR
+        }
+    }
 }
 
 /// `icl version` — show version information

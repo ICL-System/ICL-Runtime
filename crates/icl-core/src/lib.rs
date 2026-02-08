@@ -101,17 +101,70 @@ pub struct HumanMachineContract {
 
 #[cfg(test)]
 mod tests {
-    #[allow(unused_imports)]
     use super::*;
+
+    fn test_contract() -> Contract {
+        Contract {
+            identity: Identity {
+                stable_id: "ic-lib-test-001".into(),
+                version: 1,
+                created_timestamp: "2026-02-01T10:00:00Z".into(),
+                owner: "test".into(),
+                semantic_hash: "abc123".into(),
+            },
+            purpose_statement: PurposeStatement {
+                narrative: "Lib test contract".into(),
+                intent_source: "test".into(),
+                confidence_level: 1.0,
+            },
+            data_semantics: DataSemantics {
+                state: serde_json::json!({"message": "String", "count": "Integer"}),
+                invariants: vec!["count >= 0".into()],
+            },
+            behavioral_semantics: BehavioralSemantics {
+                operations: vec![Operation {
+                    name: "echo".into(),
+                    precondition: "input_provided".into(),
+                    parameters: serde_json::json!({"message": "String"}),
+                    postcondition: "state_updated".into(),
+                    side_effects: vec!["log".into()],
+                    idempotence: "idempotent".into(),
+                }],
+            },
+            execution_constraints: ExecutionConstraints {
+                trigger_types: vec!["manual".into()],
+                resource_limits: ResourceLimits {
+                    max_memory_bytes: 1_048_576,
+                    computation_timeout_ms: 1000,
+                    max_state_size_bytes: 1_048_576,
+                },
+                external_permissions: vec![],
+                sandbox_mode: "full_isolation".into(),
+            },
+            human_machine_contract: HumanMachineContract {
+                system_commitments: vec!["Echoes messages".into()],
+                system_refusals: vec![],
+                user_obligations: vec![],
+            },
+        }
+    }
 
     #[test]
     fn test_contract_serialization() {
-        // TODO: Test that contract can be serialized and deserialized
+        let contract = test_contract();
+        let json = serde_json::to_string(&contract).unwrap();
+        let deserialized: Contract = serde_json::from_str(&json).unwrap();
+        assert_eq!(contract, deserialized);
     }
 
     #[test]
     fn test_determinism_100_iterations() {
-        // TODO: Implement 100-iteration determinism test
-        // Same contract → 100x execution → all outputs identical
+        let contract = test_contract();
+        let input = r#"{"operation": "echo", "inputs": {"message": "determinism"}}"#;
+        let first = executor::execute_contract(&contract, input).unwrap();
+        for i in 0..100 {
+            let result = executor::execute_contract(&contract, input).unwrap();
+            assert_eq!(first, result, "Non-determinism at iteration {}", i);
+        }
     }
 }

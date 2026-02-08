@@ -1,7 +1,7 @@
 # ICL Project — Roadmap & Progress Tracker
 
 **Started:** 2026-02-08
-**Status:** Phase 5 — Executor
+**Status:** Phase 6 — Language Bindings
 
 > Check boxes as each step is completed. Each phase must be finished before starting the next.
 
@@ -211,16 +211,17 @@
 
 ## Phase 5: Executor
 
-- [ ] Research WASM runtime options (wasmtime vs wasmer)
-- [ ] Implement sandbox environment
-- [ ] Implement precondition evaluation
-- [ ] Implement operation execution in sandbox
-- [ ] Implement postcondition verification
-- [ ] Implement resource limit enforcement (memory, time)
-- [ ] Implement provenance logging (every state change recorded)
-- [ ] Implement `icl execute <file.icl> --input '{}'` CLI command
-- [ ] Determinism test: 100 iterations identical output
-- [ ] Benchmark execution performance
+- [x] Research WASM runtime options (wasmtime vs wasmer)
+  - Decision: Pure-Rust executor (no WASM needed — ICL is declarative, not executable code)
+- [x] Implement sandbox environment
+- [x] Implement precondition evaluation
+- [x] Implement operation execution in sandbox
+- [x] Implement postcondition verification
+- [x] Implement resource limit enforcement (memory, time)
+- [x] Implement provenance logging (every state change recorded)
+- [x] Implement `icl execute <file.icl> --input '{}'` CLI command
+- [x] Determinism test: 100 iterations identical output
+- [x] Benchmark execution performance
 
 ---
 
