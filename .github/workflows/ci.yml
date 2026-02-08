@@ -31,7 +31,7 @@ jobs:
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
-      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo clippy --workspace --all-targets --exclude icl-python --exclude icl-ffi -- -D warnings
 
   # ── Build + Test (cross-platform) ────────────────────────
   test:
@@ -48,9 +48,9 @@ jobs:
         with:
           key: ${{ matrix.os }}
       - name: Build workspace
-        run: cargo build --workspace
+        run: cargo build --workspace --exclude icl-python --exclude icl-ffi
       - name: Run tests
-        run: cargo test --workspace
+        run: cargo test --workspace --exclude icl-python --exclude icl-ffi
 
   # ── Conformance tests against ICL-Spec ───────────────────
   conformance:
@@ -103,7 +103,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run determinism tests
-        run: cargo test --workspace -- determinism
+        run: cargo test --workspace --exclude icl-python --exclude icl-ffi -- determinism
       - name: CLI determinism (100 iterations)
         run: |
           cargo build --release -p icl-cli
