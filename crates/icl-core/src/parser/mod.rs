@@ -159,6 +159,17 @@ impl Parser {
         }
     }
 
+    /// Peek at the current token and return identifier name without advancing
+    fn peek_identifier_name(&self) -> Result<String> {
+        match &self.tokens[self.position].token {
+            Token::Identifier(name) => Ok(name.clone()),
+            other => Err(Error::ParseError(format!(
+                "Expected field name identifier, found {:?} at {}",
+                other, self.tokens[self.position].span
+            ))),
+        }
+    }
+
     // ── Top-level parsing ──────────────────────────────
 
     /// Parse: `Contract { ... } [Extensions { ... }]`
@@ -202,34 +213,58 @@ impl Parser {
         self.expect(Token::Identity)?;
         self.expect(Token::LBrace)?;
 
-        self.expect_field("stable_id")?;
-        let stable_id = self.expect_string_literal()?;
-        self.expect(Token::Comma)?;
+        let mut stable_id: Option<SpannedValue<String>> = None;
+        let mut version: Option<SpannedValue<i64>> = None;
+        let mut created_timestamp: Option<SpannedValue<String>> = None;
+        let mut owner: Option<SpannedValue<String>> = None;
+        let mut semantic_hash: Option<SpannedValue<String>> = None;
 
-        self.expect_field("version")?;
-        let version = self.expect_integer_literal()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("created_timestamp")?;
-        let created_timestamp = self.expect_string_literal()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("owner")?;
-        let owner = self.expect_string_literal()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("semantic_hash")?;
-        let semantic_hash = self.expect_string_literal()?;
-        self.optional_comma();
+        while !matches!(self.peek(), Token::RBrace) {
+            let field_name = self.peek_identifier_name()?;
+            match field_name.as_str() {
+                "stable_id" => {
+                    self.expect_field("stable_id")?;
+                    stable_id = Some(self.expect_string_literal()?);
+                }
+                "version" => {
+                    self.expect_field("version")?;
+                    version = Some(self.expect_integer_literal()?);
+                }
+                "created_timestamp" => {
+                    self.expect_field("created_timestamp")?;
+                    created_timestamp = Some(self.expect_string_literal()?);
+                }
+                "owner" => {
+                    self.expect_field("owner")?;
+                    owner = Some(self.expect_string_literal()?);
+                }
+                "semantic_hash" => {
+                    self.expect_field("semantic_hash")?;
+                    semantic_hash = Some(self.expect_string_literal()?);
+                }
+                other => {
+                    return Err(Error::ParseError(format!(
+                        "Unknown field '{}' in Identity at {}",
+                        other, self.current_span()
+                    )));
+                }
+            }
+            self.optional_comma();
+        }
 
         self.expect(Token::RBrace)?;
 
         Ok(IdentityNode {
-            stable_id,
-            version,
-            created_timestamp,
-            owner,
-            semantic_hash,
+            stable_id: stable_id.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'stable_id' in Identity at {}", span)))?,
+            version: version.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'version' in Identity at {}", span)))?,
+            created_timestamp: created_timestamp.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'created_timestamp' in Identity at {}", span)))?,
+            owner: owner.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'owner' in Identity at {}", span)))?,
+            semantic_hash: semantic_hash.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'semantic_hash' in Identity at {}", span)))?,
             span,
         })
     }
@@ -241,32 +276,51 @@ impl Parser {
         self.expect(Token::PurposeStatement)?;
         self.expect(Token::LBrace)?;
 
-        self.expect_field("narrative")?;
-        let narrative = self.expect_string_literal()?;
-        self.expect(Token::Comma)?;
+        let mut narrative: Option<SpannedValue<String>> = None;
+        let mut intent_source: Option<SpannedValue<String>> = None;
+        let mut confidence_level: Option<SpannedValue<f64>> = None;
 
-        self.expect_field("intent_source")?;
-        let intent_source = self.expect_string_literal()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("confidence_level")?;
-        let confidence_level = self.expect_float_literal()?;
-
-        // Validate confidence_level range [0.0, 1.0]
-        if confidence_level.value < 0.0 || confidence_level.value > 1.0 {
-            return Err(Error::ValidationError(format!(
-                "confidence_level must be in [0.0, 1.0], found {} at {}",
-                confidence_level.value, confidence_level.span
-            )));
+        while !matches!(self.peek(), Token::RBrace) {
+            let field_name = self.peek_identifier_name()?;
+            match field_name.as_str() {
+                "narrative" => {
+                    self.expect_field("narrative")?;
+                    narrative = Some(self.expect_string_literal()?);
+                }
+                "intent_source" => {
+                    self.expect_field("intent_source")?;
+                    intent_source = Some(self.expect_string_literal()?);
+                }
+                "confidence_level" => {
+                    self.expect_field("confidence_level")?;
+                    let cl = self.expect_float_literal()?;
+                    if cl.value < 0.0 || cl.value > 1.0 {
+                        return Err(Error::ValidationError(format!(
+                            "confidence_level must be in [0.0, 1.0], found {} at {}",
+                            cl.value, cl.span
+                        )));
+                    }
+                    confidence_level = Some(cl);
+                }
+                other => {
+                    return Err(Error::ParseError(format!(
+                        "Unknown field '{}' in PurposeStatement at {}",
+                        other, self.current_span()
+                    )));
+                }
+            }
+            self.optional_comma();
         }
 
-        self.optional_comma();
         self.expect(Token::RBrace)?;
 
         Ok(PurposeStatementNode {
-            narrative,
-            intent_source,
-            confidence_level,
+            narrative: narrative.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'narrative' in PurposeStatement at {}", span)))?,
+            intent_source: intent_source.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'intent_source' in PurposeStatement at {}", span)))?,
+            confidence_level: confidence_level.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'confidence_level' in PurposeStatement at {}", span)))?,
             span,
         })
     }
@@ -278,21 +332,39 @@ impl Parser {
         self.expect(Token::DataSemantics)?;
         self.expect(Token::LBrace)?;
 
-        self.expect_field("state")?;
-        self.expect(Token::LBrace)?;
-        let state = self.parse_state_fields()?;
-        self.expect(Token::RBrace)?;
-        self.expect(Token::Comma)?;
+        let mut state: Option<Vec<StateFieldNode>> = None;
+        let mut invariants: Option<Vec<SpannedValue<String>>> = None;
 
-        self.expect_field("invariants")?;
-        let invariants = self.parse_string_list()?;
-        self.optional_comma();
+        while !matches!(self.peek(), Token::RBrace) {
+            let field_name = self.peek_identifier_name()?;
+            match field_name.as_str() {
+                "state" => {
+                    self.expect_field("state")?;
+                    self.expect(Token::LBrace)?;
+                    state = Some(self.parse_state_fields()?);
+                    self.expect(Token::RBrace)?;
+                }
+                "invariants" => {
+                    self.expect_field("invariants")?;
+                    invariants = Some(self.parse_string_list()?);
+                }
+                other => {
+                    return Err(Error::ParseError(format!(
+                        "Unknown field '{}' in DataSemantics at {}",
+                        other, self.current_span()
+                    )));
+                }
+            }
+            self.optional_comma();
+        }
 
         self.expect(Token::RBrace)?;
 
         Ok(DataSemanticsNode {
-            state,
-            invariants,
+            state: state.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'state' in DataSemantics at {}", span)))?,
+            invariants: invariants.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'invariants' in DataSemantics at {}", span)))?,
             span,
         })
     }
@@ -496,41 +568,67 @@ impl Parser {
         let span = self.current_span();
         self.expect(Token::LBrace)?;
 
-        self.expect_field("name")?;
-        let name = self.expect_string_literal()?;
-        self.expect(Token::Comma)?;
+        let mut name: Option<SpannedValue<String>> = None;
+        let mut precondition: Option<SpannedValue<String>> = None;
+        let mut parameters: Option<Vec<StateFieldNode>> = None;
+        let mut postcondition: Option<SpannedValue<String>> = None;
+        let mut side_effects: Option<Vec<SpannedValue<String>>> = None;
+        let mut idempotence: Option<SpannedValue<String>> = None;
 
-        self.expect_field("precondition")?;
-        let precondition = self.expect_string_literal()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("parameters")?;
-        self.expect(Token::LBrace)?;
-        let parameters = self.parse_state_fields()?;
-        self.expect(Token::RBrace)?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("postcondition")?;
-        let postcondition = self.expect_string_literal()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("side_effects")?;
-        let side_effects = self.parse_string_list()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("idempotence")?;
-        let idempotence = self.expect_string_literal()?;
-        self.optional_comma();
+        while !matches!(self.peek(), Token::RBrace) {
+            let field_name = self.peek_identifier_name()?;
+            match field_name.as_str() {
+                "name" => {
+                    self.expect_field("name")?;
+                    name = Some(self.expect_string_literal()?);
+                }
+                "precondition" => {
+                    self.expect_field("precondition")?;
+                    precondition = Some(self.expect_string_literal()?);
+                }
+                "parameters" => {
+                    self.expect_field("parameters")?;
+                    self.expect(Token::LBrace)?;
+                    parameters = Some(self.parse_state_fields()?);
+                    self.expect(Token::RBrace)?;
+                }
+                "postcondition" => {
+                    self.expect_field("postcondition")?;
+                    postcondition = Some(self.expect_string_literal()?);
+                }
+                "side_effects" => {
+                    self.expect_field("side_effects")?;
+                    side_effects = Some(self.parse_string_list()?);
+                }
+                "idempotence" => {
+                    self.expect_field("idempotence")?;
+                    idempotence = Some(self.expect_string_literal()?);
+                }
+                other => {
+                    return Err(Error::ParseError(format!(
+                        "Unknown field '{}' in operation at {}",
+                        other, self.current_span()
+                    )));
+                }
+            }
+            self.optional_comma();
+        }
 
         self.expect(Token::RBrace)?;
 
         Ok(OperationNode {
-            name,
-            precondition,
-            parameters,
-            postcondition,
-            side_effects,
-            idempotence,
+            name: name.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'name' in operation at {}", span)))?,
+            precondition: precondition.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'precondition' in operation at {}", span)))?,
+            parameters: parameters.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'parameters' in operation at {}", span)))?,
+            postcondition: postcondition.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'postcondition' in operation at {}", span)))?,
+            side_effects: side_effects.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'side_effects' in operation at {}", span)))?,
+            idempotence: idempotence.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'idempotence' in operation at {}", span)))?,
             span,
         })
     }
@@ -542,29 +640,51 @@ impl Parser {
         self.expect(Token::ExecutionConstraints)?;
         self.expect(Token::LBrace)?;
 
-        self.expect_field("trigger_types")?;
-        let trigger_types = self.parse_string_list()?;
-        self.expect(Token::Comma)?;
+        let mut trigger_types: Option<Vec<SpannedValue<String>>> = None;
+        let mut resource_limits: Option<ResourceLimitsNode> = None;
+        let mut external_permissions: Option<Vec<SpannedValue<String>>> = None;
+        let mut sandbox_mode: Option<SpannedValue<String>> = None;
 
-        self.expect_field("resource_limits")?;
-        let resource_limits = self.parse_resource_limits()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("external_permissions")?;
-        let external_permissions = self.parse_string_list()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("sandbox_mode")?;
-        let sandbox_mode = self.expect_string_literal()?;
-        self.optional_comma();
+        while !matches!(self.peek(), Token::RBrace) {
+            let field_name = self.peek_identifier_name()?;
+            match field_name.as_str() {
+                "trigger_types" => {
+                    self.expect_field("trigger_types")?;
+                    trigger_types = Some(self.parse_string_list()?);
+                }
+                "resource_limits" => {
+                    self.expect_field("resource_limits")?;
+                    resource_limits = Some(self.parse_resource_limits()?);
+                }
+                "external_permissions" => {
+                    self.expect_field("external_permissions")?;
+                    external_permissions = Some(self.parse_string_list()?);
+                }
+                "sandbox_mode" => {
+                    self.expect_field("sandbox_mode")?;
+                    sandbox_mode = Some(self.expect_string_literal()?);
+                }
+                other => {
+                    return Err(Error::ParseError(format!(
+                        "Unknown field '{}' in ExecutionConstraints at {}",
+                        other, self.current_span()
+                    )));
+                }
+            }
+            self.optional_comma();
+        }
 
         self.expect(Token::RBrace)?;
 
         Ok(ExecutionConstraintsNode {
-            trigger_types,
-            resource_limits,
-            external_permissions,
-            sandbox_mode,
+            trigger_types: trigger_types.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'trigger_types' in ExecutionConstraints at {}", span)))?,
+            resource_limits: resource_limits.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'resource_limits' in ExecutionConstraints at {}", span)))?,
+            external_permissions: external_permissions.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'external_permissions' in ExecutionConstraints at {}", span)))?,
+            sandbox_mode: sandbox_mode.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'sandbox_mode' in ExecutionConstraints at {}", span)))?,
             span,
         })
     }
@@ -573,24 +693,44 @@ impl Parser {
         let span = self.current_span();
         self.expect(Token::LBrace)?;
 
-        self.expect_field("max_memory_bytes")?;
-        let max_memory_bytes = self.expect_integer_literal()?;
-        self.expect(Token::Comma)?;
+        let mut max_memory_bytes: Option<SpannedValue<i64>> = None;
+        let mut computation_timeout_ms: Option<SpannedValue<i64>> = None;
+        let mut max_state_size_bytes: Option<SpannedValue<i64>> = None;
 
-        self.expect_field("computation_timeout_ms")?;
-        let computation_timeout_ms = self.expect_integer_literal()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("max_state_size_bytes")?;
-        let max_state_size_bytes = self.expect_integer_literal()?;
-        self.optional_comma();
+        while !matches!(self.peek(), Token::RBrace) {
+            let field_name = self.peek_identifier_name()?;
+            match field_name.as_str() {
+                "max_memory_bytes" => {
+                    self.expect_field("max_memory_bytes")?;
+                    max_memory_bytes = Some(self.expect_integer_literal()?);
+                }
+                "computation_timeout_ms" => {
+                    self.expect_field("computation_timeout_ms")?;
+                    computation_timeout_ms = Some(self.expect_integer_literal()?);
+                }
+                "max_state_size_bytes" => {
+                    self.expect_field("max_state_size_bytes")?;
+                    max_state_size_bytes = Some(self.expect_integer_literal()?);
+                }
+                other => {
+                    return Err(Error::ParseError(format!(
+                        "Unknown field '{}' in resource_limits at {}",
+                        other, self.current_span()
+                    )));
+                }
+            }
+            self.optional_comma();
+        }
 
         self.expect(Token::RBrace)?;
 
         Ok(ResourceLimitsNode {
-            max_memory_bytes,
-            computation_timeout_ms,
-            max_state_size_bytes,
+            max_memory_bytes: max_memory_bytes.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'max_memory_bytes' in resource_limits at {}", span)))?,
+            computation_timeout_ms: computation_timeout_ms.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'computation_timeout_ms' in resource_limits at {}", span)))?,
+            max_state_size_bytes: max_state_size_bytes.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'max_state_size_bytes' in resource_limits at {}", span)))?,
             span,
         })
     }
@@ -602,24 +742,44 @@ impl Parser {
         self.expect(Token::HumanMachineContract)?;
         self.expect(Token::LBrace)?;
 
-        self.expect_field("system_commitments")?;
-        let system_commitments = self.parse_string_list()?;
-        self.expect(Token::Comma)?;
+        let mut system_commitments: Option<Vec<SpannedValue<String>>> = None;
+        let mut system_refusals: Option<Vec<SpannedValue<String>>> = None;
+        let mut user_obligations: Option<Vec<SpannedValue<String>>> = None;
 
-        self.expect_field("system_refusals")?;
-        let system_refusals = self.parse_string_list()?;
-        self.expect(Token::Comma)?;
-
-        self.expect_field("user_obligations")?;
-        let user_obligations = self.parse_string_list()?;
-        self.optional_comma();
+        while !matches!(self.peek(), Token::RBrace) {
+            let field_name = self.peek_identifier_name()?;
+            match field_name.as_str() {
+                "system_commitments" => {
+                    self.expect_field("system_commitments")?;
+                    system_commitments = Some(self.parse_string_list()?);
+                }
+                "system_refusals" => {
+                    self.expect_field("system_refusals")?;
+                    system_refusals = Some(self.parse_string_list()?);
+                }
+                "user_obligations" => {
+                    self.expect_field("user_obligations")?;
+                    user_obligations = Some(self.parse_string_list()?);
+                }
+                other => {
+                    return Err(Error::ParseError(format!(
+                        "Unknown field '{}' in HumanMachineContract at {}",
+                        other, self.current_span()
+                    )));
+                }
+            }
+            self.optional_comma();
+        }
 
         self.expect(Token::RBrace)?;
 
         Ok(HumanMachineContractNode {
-            system_commitments,
-            system_refusals,
-            user_obligations,
+            system_commitments: system_commitments.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'system_commitments' in HumanMachineContract at {}", span)))?,
+            system_refusals: system_refusals.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'system_refusals' in HumanMachineContract at {}", span)))?,
+            user_obligations: user_obligations.ok_or_else(|| Error::ParseError(
+                format!("Missing required field 'user_obligations' in HumanMachineContract at {}", span)))?,
             span,
         })
     }
