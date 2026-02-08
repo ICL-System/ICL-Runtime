@@ -1,7 +1,7 @@
 # ICL Project — Roadmap & Progress Tracker
 
 **Started:** 2026-02-08
-**Status:** Phase 8 — CI/CD
+**Status:** Phase 9 — Conformance Suite
 
 > Check boxes as each step is completed. Each phase must be finished before starting the next.
 
@@ -286,20 +286,20 @@
 
 ## Phase 8: CI/CD
 
-- [ ] GitHub Actions: Rust build + test on push
-- [ ] GitHub Actions: Clippy linting
-- [ ] GitHub Actions: Cargo fmt check
-- [ ] GitHub Actions: Conformance tests against ICL-Spec
-- [ ] GitHub Actions: Determinism tests (100 iterations)
-- [ ] GitHub Actions: Build Python wheel (maturin)
-- [ ] GitHub Actions: Build WASM package (wasm-pack)
-- [ ] GitHub Actions: Build Go shared library
-- [ ] GitHub Actions: Publish to crates.io on tag
-- [ ] GitHub Actions: Publish to PyPI on tag
-- [ ] GitHub Actions: Publish to npm on tag
-- [ ] GitHub Actions: Deploy docs to GitHub Pages on merge
-- [ ] GitHub Actions: Cross-platform tests (Linux, macOS, Windows)
-- [ ] Branch protection rules on main
+- [x] GitHub Actions: Rust build + test on push
+- [x] GitHub Actions: Clippy linting
+- [x] GitHub Actions: Cargo fmt check
+- [x] GitHub Actions: Conformance tests against ICL-Spec
+- [x] GitHub Actions: Determinism tests (100 iterations)
+- [x] GitHub Actions: Build Python wheel (maturin)
+- [x] GitHub Actions: Build WASM package (wasm-pack)
+- [x] GitHub Actions: Build Go shared library
+- [x] GitHub Actions: Publish to crates.io on tag
+- [x] GitHub Actions: Publish to PyPI on tag
+- [x] GitHub Actions: Publish to npm on tag
+- [x] GitHub Actions: Deploy docs to GitHub Pages on merge
+- [x] GitHub Actions: Cross-platform tests (Linux, macOS, Windows)
+- [x] Branch protection rules on main
 
 ---
 
