@@ -1,0 +1,18 @@
+[package]
+name = "icl-ffi"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "C-FFI layer for ICL (Intent Contract Language) — used by Go bindings"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+icl-core = { path = "../../../crates/icl-core" }
+serde_json = "1.0"
+
+[package.metadata.cbindgen]
+language = "C"

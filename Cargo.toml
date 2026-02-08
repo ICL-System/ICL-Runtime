@@ -3,6 +3,10 @@ members = [
     "crates/icl-core",
     "crates/icl-cli",
     "bindings/python",
+    "bindings/go/ffi",
+]
+exclude = [
+    "bindings/javascript",
 ]
 resolver = "2"
 

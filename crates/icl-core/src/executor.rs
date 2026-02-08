@@ -23,6 +23,7 @@
 //! All operations are deterministic: same state + same inputs = same result.
 
 use std::collections::BTreeMap;
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::Instant;
 
 use crate::{Contract, Error, Result};
@@ -597,6 +598,7 @@ impl Executor {
         operation_name: &str,
         inputs_json: &str,
     ) -> Result<OperationResult> {
+        #[cfg(not(target_arch = "wasm32"))]
         let start = Instant::now();
 
         // 1. Find the operation definition
@@ -634,15 +636,18 @@ impl Executor {
         // 6. Apply operation — update state with input parameters
         self.apply_inputs(&inputs)?;
 
-        // 7. Check timeout
-        let elapsed_ms = start.elapsed().as_millis() as u64;
-        if elapsed_ms > self.sandbox.computation_timeout_ms {
-            // Rollback state
-            self.state.fields = state_before;
-            return Err(Error::ExecutionError(format!(
-                "Operation '{}' exceeded timeout of {}ms (took {}ms)",
-                operation_name, self.sandbox.computation_timeout_ms, elapsed_ms
-            )));
+        // 7. Check timeout (not available on wasm32)
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let elapsed_ms = start.elapsed().as_millis() as u64;
+            if elapsed_ms > self.sandbox.computation_timeout_ms {
+                // Rollback state
+                self.state.fields = state_before.clone();
+                return Err(Error::ExecutionError(format!(
+                    "Operation '{}' exceeded timeout of {}ms (took {}ms)",
+                    operation_name, self.sandbox.computation_timeout_ms, elapsed_ms
+                )));
+            }
         }
 
         // 8. Check postcondition

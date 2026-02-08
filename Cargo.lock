@@ -340,6 +340,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "icl-ffi"
+version = "0.1.0"
+dependencies = [
+ "icl-core",
+ "serde_json",
+]
+
+[[package]]
 name = "icl-python"
 version = "0.1.0"
 dependencies = [

@@ -1,7 +1,7 @@
 # ICL Project — Roadmap & Progress Tracker
 
 **Started:** 2026-02-08
-**Status:** Phase 6 — Language Bindings
+**Status:** Phase 7 — Documentation Site
 
 > Check boxes as each step is completed. Each phase must be finished before starting the next.
 
@@ -242,28 +242,28 @@
 
 ### 6.2 — JavaScript Binding (wasm-pack)
 
-- [ ] Set up `bindings/javascript/` with wasm-pack
-- [ ] Create `package.json`
-- [ ] Expose `parseContract()` to JS
-- [ ] Expose `normalize()` to JS
-- [ ] Expose `verify()` to JS
-- [ ] Expose `execute()` to JS
-- [ ] TypeScript type definitions (`.d.ts` files)
-- [ ] Test: JS produces identical results to Rust
-- [ ] Test: `npm install` from local build works
+- [x] Set up `bindings/javascript/` with wasm-pack
+- [x] Create `package.json`
+- [x] Expose `parseContract()` to JS
+- [x] Expose `normalize()` to JS
+- [x] Expose `verify()` to JS
+- [x] Expose `execute()` to JS
+- [x] TypeScript type definitions (`.d.ts` files)
+- [x] Test: JS produces identical results to Rust
+- [x] Test: `npm install` from local build works
 - [ ] Publish to npm (--dry-run first)
 
 ### 6.3 — Go Binding (cgo)
 
-- [ ] Set up `bindings/go/` with cgo FFI
-- [ ] Generate C headers from Rust (`cbindgen`)
-- [ ] Create Go wrapper functions
-- [ ] Expose `ParseContract()` to Go
-- [ ] Expose `Normalize()` to Go
-- [ ] Expose `Verify()` to Go
-- [ ] Expose `Execute()` to Go
-- [ ] Test: Go produces identical results to Rust
-- [ ] Test: `go get` from local works
+- [x] Set up `bindings/go/` with cgo FFI
+- [x] Generate C headers from Rust (`cbindgen`)
+- [x] Create Go wrapper functions
+- [x] Expose `ParseContract()` to Go
+- [x] Expose `Normalize()` to Go
+- [x] Expose `Verify()` to Go
+- [x] Expose `Execute()` to Go
+- [x] Test: Go produces identical results to Rust
+- [x] Test: `go get` from local works
 
 ---
 
