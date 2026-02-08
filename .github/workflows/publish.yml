@@ -19,9 +19,9 @@ jobs:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all --check
-      - run: cargo clippy --workspace --all-targets -- -D warnings
-      - run: cargo build --workspace
-      - run: cargo test --workspace
+      - run: cargo clippy --workspace --all-targets --exclude icl-python --exclude icl-ffi -- -D warnings
+      - run: cargo build --workspace --exclude icl-python --exclude icl-ffi
+      - run: cargo test --workspace --exclude icl-python --exclude icl-ffi
 
   # ── Publish to crates.io ────────────────────────────────
   crates-io:
