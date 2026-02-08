@@ -1,93 +1,95 @@
-# Intent Contract Language (ICL)
+# ICL Runtime
 
-A universal, **language-agnostic** specification language for intent contracts — like OpenAPI but for human intent and AI agent constraints.
+> **Status: Phase 0 — Early Development**
+>
+> This is the canonical Rust implementation of the [Intent Contract Language (ICL)](https://github.com/ICL-System/ICL-Spec) specification. All core logic is written once in Rust and compiled to every target: native binary, Python (PyO3), JavaScript/WASM (wasm-pack), and Go (cgo).
 
-## What is ICL?
+## What This Is
 
-ICL is a formal specification language that allows you to:
-- **Define intent contracts** in a machine-readable, deterministic format
-- **Validate operations** against declared constraints
-- **Prove determinism** (same input → same output)
-- **Share contracts** across different AI systems and programming languages
-- **Verify guarantees** through formal methods
-
-## Quick Start
-
-```bash
-# Install Python binding
-pip install icl-runtime
-
-# Install JavaScript binding
-npm install icl-runtime
-
-# Install Rust core
-cargo add icl-runtime
-```
-
-## Core Features
-
-- **Deterministic Execution**: Same input always produces identical output
-- **Language-Agnostic**: One specification, bindings for Python, JavaScript, Go, Rust
-- **Portable**: Run contracts in any language, on any platform
-- **Verifiable**: Formal proof of execution correctness
-- **Canonical**: Single normalized form for all contracts
-
-## Project Structure
-
-```
-/icl/
-├── spec/                    # Single source of truth (Core ICL specification)
-├── runtime/                 # Canonical runtime implementation (Rust)
-├── bindings/               # Language wrappers (Python, JavaScript, Go)
-├── docs/                   # Comprehensive documentation
-├── examples/               # Real-world examples
-├── tests/                  # Test suite and fixtures
-└── CONTRIBUTING.md         # Development guidelines
-```
-
-## Use Cases
-
-ICL is used to:
-- **Validate database operations** before execution
-- **Constrain AI agent actions** deterministically
-- **Enforce API contracts** in development tools
-- **Verify robotics commands** before hardware execution
-- **Test contract-based systems** at scale
+ICL Runtime is the **single implementation** of the ICL specification:
+- **One codebase** — all logic lives in Rust
+- **Every platform** — compiles to native, Python, JS/WASM, Go
+- **Deterministic** — same input always produces identical output
+- **Verifiable** — all properties machine-checkable
+- **Bounded** — all execution bounded in memory and time
 
 ## Architecture
 
-**One Canonical Runtime:**
-- Core implementation in **Rust** (deterministic, verifiable, performant)
-- Thin language bindings wrap the core (no reimplementation)
-- All runtimes execute identical semantics
+```
+ICL Text → Parser → AST → Normalizer → Canonical Form
+                           ↓
+                        Verifier → Type Check + Invariants + Determinism
+                           ↓
+                        Executor → Sandboxed Execution
+```
 
-**Multi-Language Support:**
-- Python: `pip install icl-runtime`
-- JavaScript/Node: `npm install icl-runtime`
-- Go: `go get icl-runtime`
-- Rust: `cargo add icl-runtime`
-- Docker: `docker pull icl-runtime`
+## Current State (Honest)
+
+| Component | Status |
+|-----------|--------|
+| Parser | Stub — returns `ParseError("not yet implemented")` |
+| Normalizer | Stub — passes input through unchanged |
+| Verifier | Stub — returns `Ok(())` for anything |
+| Executor | Stub — returns empty string |
+| CLI | Scaffolded — all subcommands print "not yet implemented" |
+| Python binding | Directory exists, not started |
+| JS/WASM binding | Directory exists, not started |
+| Go binding | Directory exists, not started |
+
+## Development
+
+### Prerequisites
+- Rust 1.75+ (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
+
+### Building
+
+```bash
+cargo build              # Build all crates
+cargo test               # Run all tests (20 stub tests pass)
+cargo build -p icl-cli   # Build CLI only
+```
+
+### Project Structure
+
+```
+ICL-Runtime/
+├── Cargo.toml              # Workspace root
+├── crates/
+│   ├── icl-core/           # Library: parser, normalizer, verifier, executor
+│   │   └── src/
+│   │       ├── lib.rs
+│   │       ├── error.rs
+│   │       ├── parser/     # Tokenizer + AST + recursive descent
+│   │       │   ├── mod.rs
+│   │       │   ├── tokenizer.rs
+│   │       │   └── ast.rs
+│   │       ├── normalizer.rs
+│   │       ├── verifier.rs
+│   │       └── executor.rs
+│   └── icl-cli/            # Binary: `icl validate`, `icl verify`, etc.
+│       └── src/main.rs
+├── bindings/
+│   ├── python/             # PyO3 + maturin (Phase 7)
+│   ├── javascript/         # wasm-pack (Phase 7)
+│   └── go/                 # cgo + cbindgen (Phase 7)
+├── tests/
+│   ├── integration/
+│   ├── conformance/
+│   └── determinism/
+└── benches/
+```
+
+## Related Repositories
+
+| Repo | Purpose |
+|------|---------|
+| [ICL-Spec](https://github.com/ICL-System/ICL-Spec) | The standard: BNF grammar, specification, conformance tests |
+| [ICL-Docs](https://github.com/ICL-System/ICL-Docs) | Documentation website (mdBook) |
 
 ## License
 
-MIT or Apache 2.0 (open-source)
-
-## Roadmap
-
-- **Q1 2026**: Open-source Core validator + reference parser
-- **Q2 2026**: RFC for Extension standards, governance model
-- **Q3 2026**: First alternative implementation (Python/JavaScript)
-- **Q4 2026**: Standardization proposal (`iclstandard.org`)
-- **2027+**: Community adoption, industry standard
+Apache License 2.0 — See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
-
-## Documentation
-
-- [Getting Started](./docs/getting-started.md)
-- [Language Specification](./spec/grammar.md)
-- [Type System](./spec/types.md)
-- [API Reference](./docs/api-reference.md)
-- [Examples](./examples/)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.

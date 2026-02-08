@@ -62,7 +62,7 @@ fn determinism_proof() {
 
 ### 4. Core Specification is Immutable
 
-`/spec/` defines Core ICL. Rules:
+The [ICL-Spec](https://github.com/ICL-System/ICL-Spec) repository defines Core ICL. Rules:
 
 - ✅ Can clarify documentation
 - ✅ Can add explanations
@@ -97,23 +97,31 @@ All versions documented in each component.
 ### File Organization
 
 ```
-icl/runtime/src/
-├── lib.rs              # Public API
-├── normalizer/
-│   ├── mod.rs
-│   ├── parser.rs      # Tokenization + parsing
-│   ├── canonicalizer.rs
-│   └── tests.rs
-├── verifier/
-│   ├── mod.rs
-│   ├── type_checker.rs
-│   ├── coherence.rs
-│   └── tests.rs
-├── executor/
-│   ├── mod.rs
-│   ├── wasm_runtime.rs
-│   └── tests.rs
-└── error.rs            # Error types
+ICL-Runtime/
+├── Cargo.toml              # Workspace root
+├── crates/
+│   ├── icl-core/           # Library crate (all core logic)
+│   │   └── src/
+│   │       ├── lib.rs          # Public API, Contract types
+│   │       ├── error.rs        # Error types + Result alias
+│   │       ├── parser/
+│   │       │   ├── mod.rs      # parse_contract() entry point
+│   │       │   ├── tokenizer.rs # Token types + scanning
+│   │       │   └── ast.rs      # AST node definitions
+│   │       ├── normalizer.rs   # Canonical form normalization
+│   │       ├── verifier.rs     # Type + invariant + determinism checks
+│   │       └── executor.rs     # Sandboxed execution engine
+│   └── icl-cli/            # Binary crate (CLI interface)
+│       └── src/main.rs
+├── bindings/
+│   ├── python/             # PyO3 + maturin (Phase 7)
+│   ├── javascript/         # wasm-pack (Phase 7)
+│   └── go/                 # cgo + cbindgen (Phase 7)
+├── tests/
+│   ├── integration/
+│   ├── conformance/
+│   └── determinism/
+└── benches/
 ```
 
 ### Error Handling
@@ -269,7 +277,7 @@ Optimization is welcome, but:
 
 ## Questions?
 
-- Check `/spec/CORE-SPECIFICATION.md` (authoritative)
+- Check [ICL-Spec/CORE-SPECIFICATION.md](https://github.com/ICL-System/ICL-Spec/blob/main/spec/CORE-SPECIFICATION.md) (authoritative)
 - Check existing tests (working examples)
 - Ask on GitHub issues
 

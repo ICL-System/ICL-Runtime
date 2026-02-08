@@ -1,17 +1,36 @@
-//! ICL Runtime - Canonical implementation of Intent Contract Language
+//! ICL Core - Canonical implementation of Intent Contract Language
 //!
 //! This is the single source of truth for ICL semantics.
-//! All language bindings (Python, JavaScript, Go) wrap this core.
+//! All language bindings (Python, JavaScript, Go) compile this same core.
+//!
+//! # Architecture
+//!
+//! ```text
+//! ICL Text → Parser → AST → Normalizer → Canonical Form
+//!                              ↓
+//!                           Verifier → Type Check + Invariants + Determinism
+//!                              ↓
+//!                           Executor → Sandboxed Execution
+//! ```
+//!
+//! # Guarantees
+//!
+//! - **Deterministic**: Same input always produces identical output
+//! - **Verifiable**: All properties machine-checkable
+//! - **Bounded**: All execution bounded in memory and time
+//! - **Canonical**: One normalized form per contract
 
+pub mod parser;
 pub mod normalizer;
 pub mod verifier;
 pub mod executor;
 pub mod error;
 
 pub use error::{Error, Result};
+pub use parser::ast::*;
 
 /// Core contract definition
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Contract {
     pub identity: Identity,
     pub purpose_statement: PurposeStatement,
@@ -21,7 +40,7 @@ pub struct Contract {
     pub human_machine_contract: HumanMachineContract,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Identity {
     pub stable_id: String,
     pub version: u32,
@@ -30,25 +49,25 @@ pub struct Identity {
     pub semantic_hash: String,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PurposeStatement {
     pub narrative: String,
     pub intent_source: String,
     pub confidence_level: f64,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct DataSemantics {
     pub state: serde_json::Value,
     pub invariants: Vec<String>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct BehavioralSemantics {
     pub operations: Vec<Operation>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Operation {
     pub name: String,
     pub precondition: String,
@@ -58,7 +77,7 @@ pub struct Operation {
     pub idempotence: String,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ExecutionConstraints {
     pub trigger_types: Vec<String>,
     pub resource_limits: ResourceLimits,
@@ -66,14 +85,14 @@ pub struct ExecutionConstraints {
     pub sandbox_mode: String,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ResourceLimits {
     pub max_memory_bytes: u64,
     pub computation_timeout_ms: u64,
     pub max_state_size_bytes: u64,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct HumanMachineContract {
     pub system_commitments: Vec<String>,
     pub system_refusals: Vec<String>,

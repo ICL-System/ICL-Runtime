@@ -1,15 +1,39 @@
 //! Error types for ICL runtime
+//!
+//! All fallible operations return `Result<T, Error>`.
+//! Error types provide context for diagnosis.
 
 use std::fmt;
 
+/// ICL runtime error types
 #[derive(Debug, Clone)]
 pub enum Error {
+    /// Syntax or structure violation during parsing
     ParseError(String),
-    TypeError { expected: String, found: String },
+
+    /// Type mismatch in contract
+    TypeError {
+        expected: String,
+        found: String,
+    },
+
+    /// Non-deterministic behavior detected
     DeterminismViolation(String),
-    ContractViolation { commitment: String, violation: String },
+
+    /// Contract commitment or postcondition violated
+    ContractViolation {
+        commitment: String,
+        violation: String,
+    },
+
+    /// Invariant or constraint validation failure
     ValidationError(String),
+
+    /// Runtime execution failure
     ExecutionError(String),
+
+    /// Normalization failure
+    NormalizationError(String),
 }
 
 impl fmt::Display for Error {
@@ -25,10 +49,12 @@ impl fmt::Display for Error {
             }
             Error::ValidationError(msg) => write!(f, "Validation error: {}", msg),
             Error::ExecutionError(msg) => write!(f, "Execution error: {}", msg),
+            Error::NormalizationError(msg) => write!(f, "Normalization error: {}", msg),
         }
     }
 }
 
 impl std::error::Error for Error {}
 
+/// Result type alias for ICL operations
 pub type Result<T> = std::result::Result<T, Error>;
