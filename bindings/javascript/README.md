@@ -20,7 +20,7 @@ wasm-pack build --target nodejs
 ## Usage
 
 ```javascript
-import { parseContract, normalize, verify, execute, semanticHash } from './pkg/icl_wasm.js';
+import { parseContract, normalize, verify, execute, semanticHash } from './pkg/icl_runtime.js';
 
 const contractText = fs.readFileSync('my-contract.icl', 'utf-8');
 

@@ -2,12 +2,12 @@
   "name": "icl-runtime",
   "version": "0.1.0",
   "description": "JavaScript/TypeScript bindings for ICL (Intent Contract Language) via WebAssembly",
-  "main": "icl_wasm.js",
+  "main": "icl_runtime.js",
   "types": "icl.d.ts",
   "files": [
-    "icl_wasm_bg.wasm",
-    "icl_wasm.js",
-    "icl_wasm.d.ts",
+    "icl_runtime_bg.wasm",
+    "icl_runtime.js",
+    "icl_runtime.d.ts",
     "icl.d.ts"
   ],
   "keywords": [
@@ -20,7 +20,7 @@
     "webassembly"
   ],
   "author": "ICL Team",
-  "license": "MIT OR Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/ICL-System/ICL-Runtime"
