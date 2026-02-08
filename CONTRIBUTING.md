@@ -113,10 +113,6 @@ ICL-Runtime/
 │   │       └── executor.rs     # Sandboxed execution engine
 │   └── icl-cli/            # Binary crate (CLI interface)
 │       └── src/main.rs
-├── bindings/
-│   ├── python/             # PyO3 + maturin (Phase 7)
-│   ├── javascript/         # wasm-pack (Phase 7)
-│   └── go/                 # cgo + cbindgen (Phase 7)
 ├── tests/
 │   ├── integration/
 │   ├── conformance/

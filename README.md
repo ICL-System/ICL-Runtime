@@ -1,8 +1,8 @@
 # ICL Runtime
 
-> **Status: Phase 0 — Early Development**
+> **Status: Phase 1 — Parser**
 >
-> This is the canonical Rust implementation of the [Intent Contract Language (ICL)](https://github.com/ICL-System/ICL-Spec) specification. All core logic is written once in Rust and compiled to every target: native binary, Python (PyO3), JavaScript/WASM (wasm-pack), and Go (cgo).
+> This is the canonical Rust implementation of the [Intent Contract Language (ICL)](https://github.com/ICL-System/ICL-Spec) specification. All core logic is written once in Rust and will be compiled to every target: native binary, Python (PyO3), JavaScript/WASM (wasm-pack), and Go (cgo).
 
 ## What This Is
 
@@ -27,14 +27,14 @@ ICL Text → Parser → AST → Normalizer → Canonical Form
 
 | Component | Status |
 |-----------|--------|
-| Parser | Stub — returns `ParseError("not yet implemented")` |
+| Tokenizer | **Done** — full scanner, 26 tests, 100-iteration determinism proof |
+| AST Types | **Done** — all node types matching BNF grammar, Display impls, 8 tests |
+| Parser | In progress — recursive descent (Phase 1.3) |
 | Normalizer | Stub — passes input through unchanged |
 | Verifier | Stub — returns `Ok(())` for anything |
 | Executor | Stub — returns empty string |
 | CLI | Scaffolded — all subcommands print "not yet implemented" |
-| Python binding | Directory exists, not started |
-| JS/WASM binding | Directory exists, not started |
-| Go binding | Directory exists, not started |
+| Bindings | Planned for Phase 6 (Python/PyO3, JS/WASM, Go/cgo) |
 
 ## Development
 
@@ -45,7 +45,7 @@ ICL Text → Parser → AST → Normalizer → Canonical Form
 
 ```bash
 cargo build              # Build all crates
-cargo test               # Run all tests (20 stub tests pass)
+cargo test               # Run all tests (49 tests pass)
 cargo build -p icl-cli   # Build CLI only
 ```
 
@@ -68,10 +68,6 @@ ICL-Runtime/
 │   │       └── executor.rs
 │   └── icl-cli/            # Binary: `icl validate`, `icl verify`, etc.
 │       └── src/main.rs
-├── bindings/
-│   ├── python/             # PyO3 + maturin (Phase 7)
-│   ├── javascript/         # wasm-pack (Phase 7)
-│   └── go/                 # cgo + cbindgen (Phase 7)
 ├── tests/
 │   ├── integration/
 │   ├── conformance/
