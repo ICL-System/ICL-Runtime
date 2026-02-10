@@ -5,6 +5,15 @@ All notable changes to ICL Runtime will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-02-10
+
+### Changed
+- icl-core README: fixed code example to use correct API imports and function signatures
+- icl-cli README: replaced non-existent commands with actual CLI commands
+- Python binding README: added `pip install icl-runtime` install command
+- JavaScript binding README: added `npm install icl-runtime` install command
+- Synchronized all package versions to 0.1.2 (crates.io, PyPI, npm)
+
 ## [0.1.1] - 2026-02-09
 
 ### Added

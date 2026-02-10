@@ -1,6 +1,6 @@
 {
   "name": "icl-runtime",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "JavaScript/TypeScript bindings for ICL (Intent Contract Language) via WebAssembly",
   "main": "icl_runtime.js",
   "types": "icl.d.ts",

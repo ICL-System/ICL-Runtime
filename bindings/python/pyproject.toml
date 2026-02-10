@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "icl-runtime"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python bindings for ICL (Intent Contract Language) — deterministic intent contracts"
 readme = "README.md"
 requires-python = ">=3.8"
