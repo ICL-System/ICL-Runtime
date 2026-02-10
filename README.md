@@ -25,8 +25,6 @@ Guardrails and system prompts are *suggestions* an LLM can ignore or misinterpre
 
 **Where ICL is used:** Trading agents that CANNOT exceed limits · Surgical robots that MUST stop if sensors fail · Drones that CANNOT enter restricted airspace · Code deploy agents that CANNOT ship without passing tests
 
-> **Rule of thumb:** If a violation leads to a lawsuit, death, or bankruptcy — use ICL. If it leads to a user complaint — guardrails are fine.
->
 > See the full [ICL vs Guardrails — 50+ real-world examples](https://icl-system.github.io/ICL-Docs/use-cases.html) for when (and when not) to use ICL.
 
 ## Architecture
