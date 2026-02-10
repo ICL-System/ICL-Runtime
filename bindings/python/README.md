@@ -11,7 +11,14 @@ This package is in early development. The API may change.
 ## Install
 
 ```bash
-# From source (requires Rust toolchain)
+pip install icl-runtime
+```
+
+Published on [PyPI](https://pypi.org/project/icl-runtime/).
+
+Or build from source (requires Rust toolchain):
+
+```bash
 pip install maturin
 cd bindings/python
 maturin develop

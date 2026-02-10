@@ -14,21 +14,21 @@ cargo install icl-cli
 
 | Command | Description |
 |---------|-------------|
-| `icl-cli parse <file>` | Parse an ICL file and display the AST |
 | `icl-cli validate <file>` | Validate syntax and structure |
-| `icl-cli verify <file>` | Run full verification (types, invariants, determinism) |
-| `icl-cli execute <file>` | Execute a contract in the sandbox |
 | `icl-cli normalize <file>` | Output canonical form |
-| `icl-cli hash <file>` | Compute SHA-256 content hash |
-| `icl-cli inspect <file>` | Show detailed contract metadata |
-| `icl-cli pipeline <file>` | Run the full pipeline (parse → normalize → verify → execute) |
-| `icl-cli completions <shell>` | Generate shell completions (bash, zsh, fish, powershell) |
+| `icl-cli verify <file>` | Run full verification (types, invariants, determinism) |
+| `icl-cli fmt <file>` | Format a contract to standard style |
+| `icl-cli hash <file>` | Compute SHA-256 semantic hash |
+| `icl-cli diff <a> <b>` | Semantic diff between two contracts |
+| `icl-cli init [name]` | Scaffold a new ICL contract |
+| `icl-cli execute <file>` | Execute a contract in the sandbox |
+| `icl-cli version` | Show version information |
 
 ## Options
 
 All commands support:
 - `--json` — Output as JSON
-- `--verbose` / `-v` — Verbose output
+- `--quiet` — Suppress non-error output (for CI usage)
 
 ## Example
 
@@ -37,10 +37,10 @@ $ icl-cli validate contract.icl
 ✓ contract.icl is valid
 
 $ icl-cli verify contract.icl --json
-{"status":"verified","checks":{"type_check":"pass","invariants":"pass","determinism":"pass","coherence":"pass"}}
+{"file":"contract.icl","verified":true,...}
 
 $ icl-cli hash contract.icl
-sha256:a1b2c3d4...
+1f7dcf67d92b813f3cc0402781f023ea33c76dd7c2b6963531fe68bf9c032cb8
 ```
 
 ## License

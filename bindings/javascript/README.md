@@ -11,7 +11,14 @@ This package is in early development. The API may change.
 ## Install
 
 ```bash
-# From source (requires Rust toolchain + wasm-pack)
+npm install icl-runtime
+```
+
+Published on [npm](https://www.npmjs.com/package/icl-runtime).
+
+Or build from source (requires Rust toolchain + wasm-pack):
+
+```bash
 cargo install wasm-pack
 cd bindings/javascript
 wasm-pack build --target nodejs

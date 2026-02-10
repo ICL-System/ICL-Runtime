@@ -15,27 +15,32 @@
 ## Usage
 
 ```rust
-use icl_core::{parse, normalize, verify, execute};
+use icl_core::parser;
+use icl_core::normalizer;
+use icl_core::verifier;
+use icl_core::executor;
 
-let source = r#"
-contract HelloWorld {
-  version: "1.0"
-  identity { name: "hello" }
-  intent { action: "greet" }
-}
-"#;
+let source = std::fs::read_to_string("contract.icl").unwrap();
 
 // Parse ICL source into AST
-let ast = parse(source).unwrap();
+let ast = parser::parse(&source).unwrap();
 
 // Normalize to canonical form
-let canonical = normalize(&ast).unwrap();
+let canonical = normalizer::normalize(&source).unwrap();
 
-// Verify all properties
-let report = verify(&ast).unwrap();
+// Compute semantic hash
+let hash = normalizer::compute_semantic_hash(&ast);
 
-// Execute in sandbox
-let result = execute(&ast).unwrap();
+// Verify all properties (types, invariants, determinism, coherence)
+let result = verifier::verify(&ast);
+assert!(result.is_valid());
+
+// Parse into high-level Contract and execute
+let contract = parser::parse_contract(&source).unwrap();
+let output = executor::execute_contract(
+    &contract,
+    r#"{"operation":"echo","inputs":{"message":"Hello"}}"#,
+).unwrap();
 ```
 
 ## Architecture
