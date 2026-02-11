@@ -87,14 +87,14 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - name: Build
+      - name: Build multi-target
         run: |
           cd bindings/javascript
-          wasm-pack build --target nodejs
+          node build.mjs
       - name: Publish
         continue-on-error: true
         run: |
-          cd bindings/javascript/pkg
+          cd bindings/javascript
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

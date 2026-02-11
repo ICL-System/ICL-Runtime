@@ -51,10 +51,10 @@ jobs:
           node-version: "22"
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - name: Build WASM package
+      - name: Build multi-target
         run: |
           cd bindings/javascript
-          wasm-pack build --target nodejs
+          node build.mjs
       - name: Run tests
         run: |
           cd bindings/javascript
@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: npm-package
-          path: bindings/javascript/pkg/
+          path: bindings/javascript/dist/
 
   # ── Go (cgo + shared library) ───────────────────────────
   go:
