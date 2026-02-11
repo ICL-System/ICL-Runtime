@@ -5,6 +5,12 @@ All notable changes to ICL Runtime will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-02-11
+
+### Fixed
+- Re-published npm package with correct multi-target `dist/` layout (0.1.3 was incorrectly published with single-target nodejs build only)
+- `npm install icl-runtime` now correctly includes `dist/nodejs/`, `dist/bundler/`, and `dist/web/` with conditional exports
+
 ## [0.1.3] - 2026-02-11
 
 ### Added

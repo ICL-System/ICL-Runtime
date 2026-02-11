@@ -1,6 +1,6 @@
 {
   "name": "icl-runtime",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "JavaScript/TypeScript bindings for ICL (Intent Contract Language) via WebAssembly — works in Node.js, browsers, and bundlers out of the box",
   "main": "./dist/nodejs/icl_runtime.js",
   "module": "./dist/bundler/icl_runtime.js",
