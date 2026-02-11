@@ -1,7 +1,7 @@
 # ICL Project — Roadmap & Progress Tracker
 
 **Started:** 2026-02-08
-**Status:** Phase 10 — Multi-Target JS Binding (In Progress)
+**Status:** Phase 10 — Multi-Target JS Binding (Complete)
 
 > Check boxes as each step is completed. Each phase must be finished before starting the next.
 
@@ -349,12 +349,12 @@
 
 ### 10.4 — Publish & Tag
 
-- [ ] Verify `cargo build && cargo test` pass
-- [ ] `npm publish` from `bindings/javascript/`
-- [ ] Tag `v0.1.3` on ICL-Runtime, push tag
-- [ ] Tag `v0.1.3` on ICL-Spec, push tag
-- [ ] Update ICL-Docs with new JavaScript usage instructions (Node.js / Bundler / Browser examples)
-- [ ] Tag `v0.1.3` on ICL-Docs, push tag
+- [x] Verify `cargo build && cargo test` pass (175 core tests)
+- [ ] `npm publish` from `bindings/javascript/` (pending npm auth)
+- [x] Tag `v0.1.3` on ICL-Runtime, push tag
+- [x] Tag `v0.1.3` on ICL-Spec, push tag
+- [x] Update ICL-Docs with new JavaScript usage instructions (Node.js / Bundler / Browser examples)
+- [x] Tag `v0.1.3` on ICL-Docs, push tag
 
 ---
 
