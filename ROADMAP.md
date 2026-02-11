@@ -350,7 +350,7 @@
 ### 10.4 — Publish & Tag
 
 - [x] Verify `cargo build && cargo test` pass (175 core tests)
-- [ ] `npm publish` from `bindings/javascript/` (pending npm auth)
+- [x] `npm publish` from `bindings/javascript/` → published `icl-runtime@0.1.3`
 - [x] Tag `v0.1.3` on ICL-Runtime, push tag
 - [x] Tag `v0.1.3` on ICL-Spec, push tag
 - [x] Update ICL-Docs with new JavaScript usage instructions (Node.js / Bundler / Browser examples)
