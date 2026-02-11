@@ -59,18 +59,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install maturin
-        run: pip install maturin
+      - name: Install maturin and twine
+        run: pip install maturin twine
       - name: Build wheel
         run: |
           cd bindings/python
           maturin build --release
       - name: Publish to PyPI
         continue-on-error: true
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: target/wheels/
-          password: ${{ secrets.PYPI_TOKEN }}
+        run: twine upload target/wheels/*.whl -u __token__ -p "$PYPI_TOKEN"
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
   # ── Publish to npm ──────────────────────────────────────
   npm:
