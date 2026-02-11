@@ -5,7 +5,7 @@
  * Run with: node tests/test_icl.mjs (after wasm-pack build)
  */
 
-import { parseContract, normalize, verify, execute, semanticHash } from '../pkg/icl_runtime.js';
+import { parseContract, normalize, verify, execute, semanticHash } from '../dist/nodejs/icl_runtime.mjs';
 
 const HELLO_WORLD = `Contract {
   Identity {

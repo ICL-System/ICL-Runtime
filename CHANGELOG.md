@@ -5,6 +5,26 @@ All notable changes to ICL Runtime will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-02-11
+
+### Added
+
+#### Phase 10 — Multi-Target JavaScript Binding
+- 3 WASM build targets: Node.js (CJS), bundler (ES modules), web (async init)
+- Conditional exports in `package.json` — correct target auto-selected based on environment
+- ESM wrapper for Node.js (`dist/nodejs/icl_runtime.mjs`) enabling `import { parseContract } from 'icl-runtime'`
+- Cross-platform build script (`build.mjs`) — builds all 3 targets with WASM identity verification
+- Sub-path export `icl-runtime/web` for browser `<script type="module">` usage
+- LICENSE file in JS binding directory
+
+### Changed
+- JavaScript binding now works out of the box in Node.js, Vite, Webpack, Rollup, and browsers
+- JS binding README rewritten with multi-target usage examples
+- ICL-Docs integrations page updated with Node CJS, ESM, bundler, and browser examples
+- ICL-Runtime README updated to "Phases 0–10 Complete"
+- JS test suite updated to import from `dist/nodejs/` instead of old `pkg/`
+- All versions synchronized to 0.1.3 (workspace Cargo.toml, JS package.json, JS Cargo.toml, Python pyproject.toml)
+
 ## [0.1.2] - 2026-02-10
 
 ### Changed

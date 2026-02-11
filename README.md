@@ -1,6 +1,6 @@
 # ICL Runtime
 
-> **Status: Phases 0–9 Complete**
+> **Status: Phases 0–10 Complete**
 >
 > This is the canonical Rust implementation of the [Intent Contract Language (ICL)](https://github.com/ICL-System/ICL-Spec) specification. All core logic is written once in Rust and compiled to every target: native binary, Python (PyO3), JavaScript/WASM (wasm-pack), and Go (cgo).
 
@@ -48,7 +48,7 @@ ICL Text → Parser → AST → Normalizer → Canonical Form
 | Executor (sandbox + provenance) | **Complete** | 20+ tests |
 | CLI (9 commands) | **Complete** | 28 tests |
 | Python binding (PyO3) | **Complete** | 18 tests |
-| JavaScript binding (WASM) | **Complete** | 31 tests |
+| JavaScript binding (WASM — Node/Bundler/Web) | **Complete** | 31 tests |
 | Go binding (cgo) | **Complete** | 16 tests |
 
 **Total: 203 Rust tests + 65 binding tests = 268 tests passing**

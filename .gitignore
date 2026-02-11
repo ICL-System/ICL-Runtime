@@ -15,3 +15,4 @@ Thumbs.db
 
 # Cargo lock is committed for binaries
 # Cargo.lock
+__pycache__/

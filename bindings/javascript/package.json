@@ -1,14 +1,35 @@
 {
   "name": "icl-runtime",
-  "version": "0.1.2",
-  "description": "JavaScript/TypeScript bindings for ICL (Intent Contract Language) via WebAssembly",
-  "main": "icl_runtime.js",
-  "types": "icl.d.ts",
+  "version": "0.1.3",
+  "description": "JavaScript/TypeScript bindings for ICL (Intent Contract Language) via WebAssembly — works in Node.js, browsers, and bundlers out of the box",
+  "main": "./dist/nodejs/icl_runtime.js",
+  "module": "./dist/bundler/icl_runtime.js",
+  "types": "./dist/bundler/icl_runtime.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/bundler/icl_runtime.d.ts",
+      "node": {
+        "import": {
+          "types": "./dist/nodejs/icl_runtime.d.ts",
+          "default": "./dist/nodejs/icl_runtime.mjs"
+        },
+        "require": {
+          "types": "./dist/nodejs/icl_runtime.d.ts",
+          "default": "./dist/nodejs/icl_runtime.js"
+        }
+      },
+      "import": "./dist/bundler/icl_runtime.js",
+      "default": "./dist/bundler/icl_runtime.js"
+    },
+    "./web": {
+      "types": "./dist/web/icl_runtime.d.ts",
+      "import": "./dist/web/icl_runtime.js",
+      "default": "./dist/web/icl_runtime.js"
+    }
+  },
   "files": [
-    "icl_runtime_bg.wasm",
-    "icl_runtime.js",
-    "icl_runtime.d.ts",
-    "icl.d.ts"
+    "dist/",
+    "README.md"
   ],
   "keywords": [
     "icl",
@@ -17,7 +38,9 @@
     "deterministic",
     "ai",
     "wasm",
-    "webassembly"
+    "webassembly",
+    "parser",
+    "verifier"
   ],
   "author": "ICL Team",
   "license": "MIT",
@@ -25,7 +48,9 @@
     "type": "git",
     "url": "https://github.com/ICL-System/ICL-Runtime"
   },
+  "homepage": "https://github.com/ICL-System/ICL-Runtime/tree/main/bindings/javascript",
   "scripts": {
+    "build": "node build.mjs",
     "test": "node tests/test_icl.mjs"
   },
   "devDependencies": {}

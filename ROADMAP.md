@@ -1,7 +1,7 @@
 # ICL Project — Roadmap & Progress Tracker
 
 **Started:** 2026-02-08
-**Status:** Phase 9 — Conformance Suite ✅
+**Status:** Phase 10 — Multi-Target JS Binding (In Progress)
 
 > Check boxes as each step is completed. Each phase must be finished before starting the next.
 
@@ -315,7 +315,50 @@
 
 ---
 
-## Phase 10: Standardization
+## Phase 10: Multi-Target JavaScript Binding (v0.1.3)
+
+> Goal: Make `npm install icl-runtime` work out of the box in Node.js, bundlers (Vite/Webpack/Rollup), and plain browsers — zero manual WASM copying.
+
+### 10.1 — Build 3 WASM Targets
+
+- [x] Build `wasm-pack --target nodejs` → `pkg-nodejs/`
+- [x] Build `wasm-pack --target bundler` → `pkg-bundler/`
+- [x] Build `wasm-pack --target web` → `pkg-web/`
+- [x] Assemble `dist/` layout: `dist/nodejs/`, `dist/bundler/`, `dist/web/`
+  - Each target keeps its own WASM copy (~352 KB each; glue code has target-specific path resolution that breaks with shared paths)
+- [x] Cross-platform build script (`build.mjs`) using Node.js — runs wasm-pack for all 3 targets, assembles dist/, verifies WASM binary identity
+- [x] ESM wrapper (`dist/nodejs/icl_runtime.mjs`) for `import { parseContract } from 'icl-runtime'` in Node.js
+
+### 10.2 — Package.json Conditional Exports
+
+- [x] `package.json` with conditional `"exports"`:
+  - `"."` → `"node"` (CJS require + ESM import via .mjs wrapper) / `"import"` (bundler) / `"default"` (bundler)
+  - `"./web"` → web target with async `init()` for `<script type="module">`
+  - `"main"` → `./dist/nodejs/icl_runtime.js` (fallback for old tooling)
+  - `"module"` → `./dist/bundler/icl_runtime.js` (fallback for old bundlers)
+  - `"types"` → `./dist/bundler/icl_runtime.d.ts`
+  - `"files"` → `["dist/", "README.md"]`
+- [x] Bump version to `0.1.3` in `package.json` and `bindings/javascript/Cargo.toml`
+
+### 10.3 — Test in /tmp (3 Environments)
+
+- [x] **Test A — Node.js CJS**: `npm install` from local path, `node -e 'const icl = require("icl-runtime"); ...'` calls `parseContract()` ✓
+- [x] **Test B — Node.js ESM**: `node --input-type=module -e 'import { parseContract } from "icl-runtime"; ...'` ✓
+- [x] **Test C — Vite bundler**: Create minimal Vite + TS project, `import { parseContract } from 'icl-runtime'`, `npm run build` succeeds
+- [x] All 3 tests pass with zero manual WASM copying
+
+### 10.4 — Publish & Tag
+
+- [ ] Verify `cargo build && cargo test` pass
+- [ ] `npm publish` from `bindings/javascript/`
+- [ ] Tag `v0.1.3` on ICL-Runtime, push tag
+- [ ] Tag `v0.1.3` on ICL-Spec, push tag
+- [ ] Update ICL-Docs with new JavaScript usage instructions (Node.js / Bundler / Browser examples)
+- [ ] Tag `v0.1.3` on ICL-Docs, push tag
+
+---
+
+## Phase 11: Standardization
 
 - [ ] Write RFC document
 - [ ] Set up advisory board structure
