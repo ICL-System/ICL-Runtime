@@ -1,5 +1,11 @@
 # ICL Runtime
 
+[![crates.io](https://img.shields.io/crates/v/icl-core.svg)](https://crates.io/crates/icl-core)
+[![npm](https://img.shields.io/npm/v/icl-runtime.svg)](https://www.npmjs.com/package/icl-runtime)
+[![PyPI](https://img.shields.io/pypi/v/icl-runtime.svg)](https://pypi.org/project/icl-runtime/)
+[![docs.rs](https://docs.rs/icl-core/badge.svg)](https://docs.rs/icl-core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > **Status: Phases 0–10 Complete**
 >
 > This is the canonical Rust implementation of the [Intent Contract Language (ICL)](https://github.com/ICL-System/ICL-Spec) specification. All core logic is written once in Rust and compiled to every target: native binary, Python (PyO3), JavaScript/WASM (wasm-pack), and Go (cgo).
